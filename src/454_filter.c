@@ -10,7 +10,7 @@
 void			init_genrand	(unsigned long);
 unsigned long 	genrand_int32	(void);
 
-static char *const Usage           = "454filter <fasta (.fna) file> <quality scores (.qual) file> <min phred score> <min run length> <filtering mode> <5' tag/optional> <optional tag mismtach; default 0>\nfiltering mode can be 0/2 (truncate/keep homopolymers), 1/3 (split/keep homopolymers)\n";
+static char *const Usage           = "454filter <fasta (.fna) file> <quality scores (.qual) file> <min phred score> <min run length> <filtering mode> <5' tag/optional> <optional tag mismtach; default 0>\nfiltering mode can be 0 through 7 (see README for details) \nViewed as a bit mask, if the highest bit is set, all 'N' characters as skipped\nIf the second bit is set, low q-scores in homopolymers are tolerated.\nIf the lowest bit is set, then reads are SPLIT at low score points, otherwise they are truncated";
 static char *const ValidChars      = "ACGTN";
 					
 static long        CharLookup[255] ;
@@ -321,7 +321,8 @@ int main (int argc, const char * argv[])
 		
 	struct	 bufferedString			*seqName		= allocateNewString(),
 									*seqName2		= allocateNewString(),
-									*seqData		= allocateNewString();
+									*seqData		= allocateNewString(),
+                                    *filtered_N     = NULL;
 	
 	struct  vector					*scores			= allocateNewVector(),
 									*originalL		= allocateNewVector(),
@@ -375,25 +376,28 @@ int main (int argc, const char * argv[])
     }
 	
 	min_qscore = atoi (argv[3]);
-	if (min_qscore <= 1)
+	if (min_qscore < 0)
 	{
-		fprintf (stderr, "Expected a positive interger to specify the minimum q-score (20 is a good default): had %s\n", argv[3]);
+		fprintf (stderr, "Expected a non-negative integer to specify the minimum q-score (20 is a good default): had %s\n", argv[3]);
 		return 1;
 	}
 
 	min_length = atoi (argv[4]);
 	if (min_length <= 1)
 	{
-		fprintf (stderr, "Expected a positive interger to specify the minimum high quality run length (50 is a good default): had %s\n", argv[4]);
+		fprintf (stderr, "Expected a positive integer to specify the minimum high quality run length (50 is a good default): had %s\n", argv[4]);
 		return 1;
 	}
 
 	run_mode = atoi (argv[5]);
-	if (run_mode != 0 && run_mode != 1 && run_mode != 2 && run_mode != 3)
+	if (run_mode < 0 || run_mode > 7)
 	{
-		fprintf (stderr, "Expected a 0/2 (truncate/keep homopolymers), 1/3 (split/keep homopolymers)  for the run mode argument: had %s\n", argv[4]);
+		fprintf (stderr, "Expected value in [0,1,2,3,4,5,6,7] for the run mode argument: had %s\n", argv[4]);
 		return 1;
 	}
+    if (run_mode >= 4) {
+        filtered_N = allocateNewString ();
+    }
 		
     inFile		   = fopen (argv[1], "rb"); 
 	if (!inFile)
@@ -420,8 +424,7 @@ int main (int argc, const char * argv[])
 		tagLength = strlen (tag);
 	}
 	
-	if (argc == 8)
-	{
+	if (argc == 8) {
 		tagMismatch = atoi (argv[7]);
 	}
 	
@@ -554,17 +557,18 @@ int main (int argc, const char * argv[])
 						
 						if (seqData->sLength != scores->vLength)
 						{
-							printf ("%s: %ld (seq) %ld (scores) \n", seqName->sData, seqData->sLength, scores->vLength);
+							fprintf (stderr, "%s: %ld (seq) %ld (scores) \n", seqName->sData, seqData->sLength, scores->vLength);
 							reportError ("Mismatch between the lengths of a read and its score vector\n", lineCount2, columnCount2);
 						}
 						if (strcmp (seqName->sData, seqName2->sData))			
 						{
-							printf ("%s\n%s\n", seqName->sData, seqName2->sData);
+							fprintf (stderr, "%s\n%s\n", seqName->sData, seqName2->sData);
 							reportError ("Mismatch between the names of a read and its score vector\n", lineCount2, columnCount2);
 						}
+                        
 						aux1 = 0; /* current run start */
 						aux2 = 0; /* current run length */
-						aux3 = 0;
+						aux3 = 0; /* keep track of the tag offset */
 						
 						if  (tagLength)
 						/* check for the presence of a tag */
@@ -592,50 +596,103 @@ int main (int argc, const char * argv[])
 						}
 						
 						aux4 = 0; /* split count */
-						
-						for (; aux3 <= scores->vLength; aux3 ++)
-						{
-							//printf ("%d %c %d %d %d\n", aux3, seqData->sData[aux3], scores->vData[aux3], aux1, aux2);
-									
-							if (scores->vData[aux3] >= min_qscore)
-							{
-								if (aux3 < scores->vLength)
-								{
-									if (aux2 == 0)
-										aux1 = aux3;
-									aux2++;
-									continue;
-								}
-							}
-							else
-							{
-								if (run_mode >= 2 && aux2 > 0 && seqData->sData[aux3] == seqData->sData[aux3-1])
-								{
-									aux2++;
-									continue;
-								}
-							}
-							
-							if (aux2 >= min_length)
-							{
-								appendValueToVector (retainedL,aux2);
-								aux2 += aux1-1;
-								numberBuffer[0] = seqData->sData[aux2+1];
-								seqData->sData[aux2+1] = 0;
-								printf (">%s", seqName->sData);
-								if (aux4)
-									printf (" fragment %ld", aux4);
-								printf ("\n%s\n", seqData->sData + aux1);
-				
-								seqData->sData[aux2+1] = numberBuffer[0];
-								readStats[2] ++;
-								
-								aux4++;
-								if (run_mode % 2 == 0)
-									break;
-							}
-							aux2 = 0;
-						}
+                        
+                        if (run_mode < 4) {
+                            // no special treatment of 'N'
+                            for (; aux3 <= scores->vLength; aux3 ++)
+                            {
+                                //printf ("%d %c %d %d %d\n", aux3, seqData->sData[aux3], scores->vData[aux3], aux1, aux2);
+                                        
+                                if (scores->vData[aux3] >= min_qscore)
+                                {
+                                    if (aux3 < scores->vLength)
+                                    {
+                                        if (aux2 == 0)
+                                            aux1 = aux3;
+                                        aux2++;
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    if (run_mode >= 2 && aux2 > 0 && seqData->sData[aux3] == seqData->sData[aux3-1])
+                                    {
+                                        aux2++;
+                                        continue;
+                                    }
+                                }
+                                
+                                if (aux2 >= min_length)
+                                {
+                                    appendValueToVector (retainedL,aux2);
+                                    aux2 += aux1-1;
+                                    numberBuffer[0] = seqData->sData[aux2+1];
+                                    seqData->sData[aux2+1] = 0;
+                                    printf (">%s", seqName->sData);
+                                    if (aux4)
+                                        printf (" fragment %ld", aux4);
+                                    printf ("\n%s\n", seqData->sData + aux1);
+                    
+                                    seqData->sData[aux2+1] = numberBuffer[0];
+                                    readStats[2] ++;
+                                    
+                                    aux4++;
+                                    if (run_mode % 2 == 0)
+                                        break;
+                                }
+                                aux2 = 0;
+                            }
+                        }
+                        else {
+                            // 'N's are ignored
+                            clear_buffered_string(filtered_N);
+                            for (; aux3 <= scores->vLength; aux3 ++)
+                            {
+                                //printf ("%d %c %d %d %d\n", aux3, seqData->sData[aux3], scores->vData[aux3], aux1, aux2);
+                                if (seqData->sData[aux3] == 'N') {
+                                    continue;
+                                } 
+                                        
+                                if (scores->vData[aux3] >= min_qscore)
+                                {
+                                    if (aux3 < scores->vLength)
+                                    {
+                                        if (filtered_N->sLength == 0) // reset run length
+                                            aux1 = aux3;
+                                        aux2++;
+                                        appendCharacterToString (filtered_N,seqData->sData[aux3]);
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    if (run_mode >= 6 && filtered_N->sLength > 0 && seqData->sData[aux3] == filtered_N->sData[filtered_N->sLength-1])
+                                    {
+                                        appendCharacterToString (filtered_N,seqData->sData[aux3]);
+                                        continue;
+                                    }
+                                }
+                                
+                                if (filtered_N->sLength >= min_length)
+                                {
+                                    appendValueToVector (retainedL,filtered_N->sLength);
+                                    printf (">%s", seqName->sData);
+                                    if (aux4)
+                                        printf (" fragment %ld", aux4);
+                                    printf ("\n%s\n", filtered_N->sData);
+                    
+                                    readStats[2] ++;
+                                    
+                                    aux4++;
+                                    if (run_mode % 2 == 0)
+                                        break;
+                                    else
+                                         clear_buffered_string(filtered_N);
+                                }
+                                aux2 = 0;
+                            }
+                        }
+                        
 						readStats[1] += (aux4>0);	
 						
 						clear_buffered_string (seqName);
@@ -654,6 +711,14 @@ int main (int argc, const char * argv[])
 		
 		columnCount++;
 	}
+
+    fprintf (stderr, "RUN SETTINGS\nInput fna:\t%s\nInput qual:\t%s\nQ-score min:\t%d\nMin contig length:\t%d\nRun mode:\t%s/%s/%s\n5' tag:\t%s\nMaximum tag mismatches:\t%d\n\n", 
+            argv[1], argv[2], min_qscore, min_length, 
+            (run_mode & 0b100) ? "Skip N": "Keep N", 
+            (run_mode & 0b10) ? "Tolerate homopolymers" : "No special homopolymers treatment", 
+            (run_mode & 0b1) ? "Split contigs" : "Truncate read",
+            (tagLength > 0) ? tag : "None",
+            tagMismatch); 
 	
 	fprintf (stderr, "\nREAD STATISTICS\nOriginal     reads: %ld\nContributing reads: %ld\nRetained fragments: %ld\n", readStats[0], readStats[1], readStats[2]);
 	qsort   (originalL->vData, originalL->vLength, sizeof (vector_load), vecComp);
@@ -665,6 +730,7 @@ int main (int argc, const char * argv[])
 	destroy_string(seqName);	
 	destroy_string(seqName2);	
 	destroy_string(seqData);	
+    if (filtered_N) destroy_string (filtered_N);
 	destroy_vector(scores);
 
 	return 0;
