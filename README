@@ -87,12 +87,17 @@ ARGUMENTS
 						See 'FILTERING MODE' below
 						
 	FILTERING MODE    : <required> 
-	                    one of four values : 0, 1, 2, or 3
+	                    one of eight values : 0 - 7
 	                    
 	                    0 -- truncate (no special treatment of homopolymers)
 	                    1 -- split (no special treatment of homopolymers)
 	                    2 -- truncate (retain homopolymers)
 	                    3 -- split (retain hompolymers).
+	                    
+	                    4 -- same as 0 but skipping all 'N' characters
+	                    5 -- same as 1 but skipping all 'N' characters
+	                    same for 6 and 7
+	                    
 	                    
 	                    The difference between truncate and split:
 	                    
@@ -118,6 +123,11 @@ ARGUMENTS
                             When 'retain hompolymers' is on, then a low q-score
                             at bases 2,3,.. of a homopolymer (e.g. AAAA) do not
                             trigger a truncate or split event.
+                            
+                            With skipping 'N' option selected (values 4-7), any
+                            occurence of 'N' in the FNA is simply skipped:
+                            it does NOT contribute to the CONTIG length, but 
+                            also does NOT trigger splits or truncations
                             
      5' TAG             : <optional>
                           a string of nucleotides
