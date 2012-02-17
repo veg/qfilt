@@ -10,7 +10,7 @@
 void			init_genrand	(unsigned long);
 unsigned long 	genrand_int32	(void);
 
-static char *const Usage           = "454filter <fasta (.fna) file> <quality scores (.qual) file> <min phred score> <min run length> <filtering mode> <5' tag/optional> <optional tag mismtach; default 0>\nfiltering mode can be 0 through 7 (see README for details) \nViewed as a bit mask, if the highest bit is set, all 'N' characters as skipped\nIf the second bit is set, low q-scores in homopolymers are tolerated.\nIf the lowest bit is set, then reads are SPLIT at low score points, otherwise they are truncated";
+static char *const Usage           = "454filter <fasta (.fna) file> <quality scores (.qual) file> <min phred score> <min run length> <filtering mode> <5' tag/optional> <optional tag mismtach; default 0>\nfiltering mode can be 0 through 7 (see README for details) \nViewed as a bit mask, if the highest bit is set, all 'N' characters as skipped\nIf the second bit is set, low q-scores in homopolymers are tolerated.\nIf the lowest bit is set, then reads are SPLIT at low score points, otherwise they are truncated.\n";
 static char *const ValidChars      = "ACGTN";
 					
 static long        CharLookup[255] ;
