@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(454filter)
+project(qfilt)
 
 #-------------------------------------------------------------------------------
 # default installation prefix
@@ -16,26 +16,25 @@ include_directories(
 )
 
 add_executable(
-    454filter
-    src/454_filter.c
+    qfilt
+    src/qfilt.cpp
 )
 
-target_link_libraries (454filter ${DEFAULT_LIBRARIES})
+target_link_libraries (qfilt ${DEFAULT_LIBRARIES})
 
-
-set(DEFAULT_COMPILE_FLAGS "-O3")
+# do not remove -Wall and -Werror -- fix the errors instead of being lazy
+set(DEFAULT_COMPILE_FLAGS "-O0 -g -Wall -Werror")
 set(DEFAULT_LINK_FLAGS "${DEFAULT_COMPILE_FLAGS}")
 
+set_target_properties(
+    qfilt
+    PROPERTIES
+    COMPILE_FLAGS "${DEFAULT_COMPILE_FLAGS}"
+    LINK_FLAGS "${DEFAULT_COMPILE_FLAGS}"
+)
 
 install(
-    TARGETS 454filter
+    TARGETS qfilt
 	RUNTIME DESTINATION bin
 	OPTIONAL
 )
-
-add_custom_target(454-filter 
-	DEPENDS 454filter
-)
-
-
-
