@@ -79,8 +79,8 @@ void fprint_vector_stats(FILE * file, vector<long> & vec, const char * hdr)
         var,
         sqrt(var),
         vec[0],
-        vec[(long) (0.025 * i)],
-        vec[(long) (0.975 * i)],
+        vec[long(0.025 * i)],
+        vec[long(0.975 * i)],
         vec[i - 1]
     );
 }
@@ -88,13 +88,13 @@ void fprint_vector_stats(FILE * file, vector<long> & vec, const char * hdr)
 
 inline void parse_error(const char * msg, pos_t & pos) 
 {
-    fprintf(stderr, "\nERROR (file %s, line %ld, column %ld): %s\n", pos.file, pos.line, pos.col, msg); 
+    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): %s\n", pos.file, pos.line, pos.col, msg); 
     exit(1);
 }
 
 #define MALFUNCTION() \
 { \
-    fprintf(stderr, "\nERROR (file %s, line %d): state machine malfunction\n", __FILE__, __LINE__); \
+    fprintf(stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", __FILE__, __LINE__); \
     exit(1); \
 }
 
@@ -123,7 +123,7 @@ void parse_fastq(args_t & args, const char * fastq)
 
 void parse_minlength(args_t & args, const char * min_length)
 {
-    args.min_length = (long) atoi(min_length);
+    args.min_length = atoi(min_length);
     if (args.min_length <= 1)
     {
         fprintf(stderr, "Expected a positive integer to specify the minimum high quality run length (50 is a good default): had %s\n", min_length);
@@ -133,7 +133,7 @@ void parse_minlength(args_t & args, const char * min_length)
 
 void parse_minqscore(args_t & args, const char * min_qscore)
 {
-    args.min_qscore = (long) atoi(min_qscore);
+    args.min_qscore = atoi(min_qscore);
     if (args.min_qscore < 0)
     {
         fprintf(stderr, "Expected a non-negative integer to specify the minimum q-score (20 is a good default): had %s\n", min_qscore);
@@ -223,20 +223,25 @@ void parse_args(int argc, const char * argv[], args_t & args)
     }
 }
 
-typedef struct {
+class seq_t {
+  public:
     string id;
     string seq;
     vector<long> quals;
     long length;
-} seq_t;
-
-void clear_seq(seq_t & seq)
-{
-    seq.id.clear();
-    seq.seq.clear();
-    seq.quals.clear();
-    seq.length = 0;
-}
+    seq_t() {
+        id = string();
+        seq = string();
+        quals = vector<long>();
+        length = 0;
+    }
+    void clear() {
+        id.clear();
+        seq.clear();
+        quals.clear();
+        length = 0;
+    }
+};
 
 enum state_t
 {
@@ -253,7 +258,7 @@ enum filetype_t
     FASTQ
 };
 
-class state_machine
+class machine_t
 {
   private:
     FILE * fastq;
@@ -264,12 +269,12 @@ class state_machine
     state_t fstate;
     state_t qstate;
   public:
-    state_machine(const char *);
-    state_machine(const char *, const char *);
+    machine_t(const char *);
+    machine_t(const char *, const char *);
     bool next(seq_t &);
 };
 
-state_machine::state_machine(const char * fastq_file):
+machine_t::machine_t(const char * fastq_file):
     fasta(NULL),
     qual(NULL),
     fpos(pos_t(fastq_file, 0, 0)),
@@ -285,9 +290,8 @@ state_machine::state_machine(const char * fastq_file):
     }
 }
 
-state_machine::state_machine(const char * fasta_file, const char * qual_file):
-    fasta(NULL),
-    qual(NULL),
+machine_t::machine_t(const char * fasta_file, const char * qual_file):
+    fastq(NULL),
     fpos(pos_t(fasta_file, 0, 0)),
     qpos(pos_t(qual_file, 0, 0)),
     fstate(UNKNOWN),
@@ -308,7 +312,8 @@ state_machine::state_machine(const char * fasta_file, const char * qual_file):
     }
 }
 
-inline char skip_whitespace(FILE * file, pos_t & pos)
+inline
+char skip_whitespace(FILE * file, pos_t & pos)
 {
     char c;
     do {
@@ -325,20 +330,21 @@ inline char skip_whitespace(FILE * file, pos_t & pos)
 
 int extend_until(string & str, const char until, FILE * file, pos_t & pos)
 {
-    char buf[1024],
+    char buf[256],
          c = '\0';
     long len = 0, total = 0;
 
-    while (fgets(buf, 1024, file)) {
+    while (fgets(buf, 256, file)) {
+        fprintf(stderr, "%s\n", buf);
         len = strlen(buf);
         if (buf[len - 1] == '\n') {
             pos.line += 1;
             pos.col = 0;
             // extend the string, but without the newline
-            str.extend((const char *) buf, len - 1);
+            str.extend(buf, len - 1);
             total += len - 1;
-            // if newline is our until ...
-            if (buf[len -1 ] == c)
+            // if buf[len - 1] (newline) is our until ...
+            if ('\n' == until)
                 break;
             // keep excising whitespace
             c = skip_whitespace(file, pos);
@@ -359,7 +365,7 @@ int extend_until(string & str, const char until, FILE * file, pos_t & pos)
     return total;
 }
 
-bool state_machine::next(seq_t & seq)
+bool machine_t::next(seq_t & seq)
 {
     const char hdr = fastq ? '@' : '>',
                sep = fastq ? '+' : '>';
@@ -368,10 +374,12 @@ bool state_machine::next(seq_t & seq)
     pos_t & pos = fpos;
     state_t & state = fstate;
 
+    fprintf(stderr, "parsing FASTA\n");
 begin:
     do {
         switch (state) {
             case UNKNOWN: {
+                fprintf(stderr, "entering UNKNOWN\n");
                 const char c = skip_whitespace(file, pos);
                 if (c == hdr)
                     state = ID;
@@ -382,21 +390,39 @@ begin:
                 break;
             }
             case ID: {
-                int nelem;
-                nelem = extend_until(seq.id, '\n', file, pos);
-                if (nelem < 1)
-                    parse_error("malformed file: missing ID\n", pos);
-                state = SEQUENCE;
+                fprintf(stderr, "entering ID\n");
+                switch (filetype) {
+                    case FASTA:
+                    case FASTQ: {
+                        int nelem = extend_until(seq.id, '\n', file, pos);
+                        if (nelem < 1)
+                            parse_error("malformed file: missing ID\n", pos);
+                        state = SEQUENCE;
+                        break;
+                    }
+                    case QUAL: {
+                        string qid = string();
+                        int nelem = extend_until(qid, '\n', file, pos);
+                        if (nelem < 1)
+                            parse_error("malformed file: missing ID\n", pos);
+                        state = QUALITY;
+                        break;
+                    }
+                    default:
+                        MALFUNCTION();
+                }
                 break;
             }
             case SEQUENCE: {
+                fprintf(stderr, "entering SEQUENCE\n");
                 switch (filetype) {
                     case FASTA:
                     case FASTQ: {
                         int nelem;
                         nelem = extend_until(seq.seq, sep, file, pos);
+                        fprintf(stderr, "SEQUENCE: %s\n", seq.seq.c_str());
                         if (nelem < 1)
-                            parse_error("malformed file: missing ID\n", pos);
+                            parse_error("malformed file: missing sequence\n", pos);
                         if (filetype == FASTA) {
                             pos.col -= 1;
                             fseek(file, -1, SEEK_CUR);
@@ -406,9 +432,6 @@ begin:
                             fstate = QUALITY;
                         break;
                     }
-                    case QUAL: {
-                        break;
-                    }
                     default:
                         MALFUNCTION();
                 }
@@ -416,7 +439,9 @@ begin:
             }
             case QUALITY: {
                 int nelem;
-                string qs;
+                string qs = string();
+
+                fprintf(stderr, "entering QUALITY\n");
 
                 nelem = extend_until(qs, hdr, file, pos);
                 if (nelem < 1)
@@ -433,10 +458,10 @@ begin:
                     int i;
                     for (i = 0; i < qs.length(); ++i) {
                         // encoding: chr(phred+33)
-                        seq.quals.append(((long) qs[i]) - 33);
+                        seq.quals.append(long(qs[i]) - 33);
                     }
                 }
-                // reset the state to unkonw and just prior to the header
+                // reset the state to UNKNOWN and just prior to the header
                 pos.col -= 1;
                 fseek(file, -1, SEEK_CUR);
                 state = UNKNOWN;
@@ -447,11 +472,14 @@ begin:
         }
     } while (state != UNKNOWN);
 
+    fprintf(stderr, "id: %s\nseq: %s\n", seq.id.c_str(), seq.seq.c_str());
+
     if (file == fasta) {
         file = qual;
         filetype = QUAL;
         pos = qpos;
         state = qstate;
+        fprintf(stderr, "parsing QUAL\n");
         goto begin;
     }
 
@@ -470,9 +498,9 @@ int main(int argc, const char * argv[])
 {
     args_t args;
 
-    state_machine * machine = NULL;
+    machine_t * machine = NULL;
 
-    seq_t * seq = NULL;
+    seq_t seq = seq_t();
 
     /*
     for (int i = 0; i < 256; ++i)
@@ -485,18 +513,17 @@ int main(int argc, const char * argv[])
     parse_args(argc, argv, args);
     
     if (args.fastq)
-        machine = new state_machine(args.fastq);
+        machine = new machine_t(args.fastq);
     else
-        machine = new state_machine(args.fasta, args.qual);
+        machine = new machine_t(args.fasta, args.qual);
 
-    vector<long> read_lengths;
-    vector<long> contig_lengths;
+    vector<long> read_lengths = vector<long>();
+    vector<long> contig_lengths = vector<long>();
 
-    while (machine->next(*seq)) {
-        char buf[256] = "";
+    while (machine->next(seq)) {
         long to = 0, contig = 0;
 
-        read_lengths.append(seq->length);
+        read_lengths.append(seq.length);
 
         // compare the sequence prefix to the tag,
         // if it matches by at least tag_mismatch,
@@ -505,7 +532,7 @@ int main(int argc, const char * argv[])
             long mismatch = 0;
 
             for (to = 0; to < args.tag_length; ++to) {
-                if (seq->seq[to] != args.tag[to])
+                if (seq.seq[to] != args.tag[to])
                     mismatch += 1;
             }
 
@@ -518,26 +545,27 @@ int main(int argc, const char * argv[])
         // but only continue if there's enough left to produce a minimum-sized contig
         do {
             bool abort = false;
-            char curr = '\0',
+            char buf[256],
+                 curr = '\0',
                  last = '\0';
             long from = 0,
                  i = 0;
 
             // reset the read contig identifier
-            memset(buf, '\0', 256);
+            memset(buf, '\0', sizeof(char) * 256);
 
             // push through the sequence until the quality score meets the minimum
-            for (; (to < (seq->length - args.min_length)) && (seq->quals[to] < args.min_qscore); ++to)
+            for (; (to < (seq.length - args.min_length)) && (seq.quals[to] < args.min_qscore); ++to)
 
             // begin with positive quality score
             from = to;
 
             // build a read until we hit a low quality score,
             // that is, unless we're skipping Ns or retaining homopolymers
-            for (; (to < seq->length) && (!abort); ++to) {
-                curr = seq->seq[to];
+            for (; (to < seq.length) && (!abort); ++to) {
+                curr = seq.seq[to];
 
-                if (seq->quals[to] < args.min_qscore) {
+                if (seq.quals[to] < args.min_qscore) {
                     // if homopolymer, continue
                     if (!args.homo || last != curr)
                         goto next;
@@ -558,11 +586,11 @@ next:
                 sprintf(buf, " CONTIG=%ld", contig);
 
             // print the read ID (with CONTIG identifier)
-            fprintf(stdout, ">%s%s\n", seq->id.c_str(), buf);
+            fprintf(stdout, ">%s%s\n", seq.id.c_str(), buf);
 
             // print the read sequence
             for (i = from; i < to; i += 80) {
-                strncpy(buf, seq->seq.c_str() + i, 80);
+                strncpy(buf, seq.seq.c_str() + i, 80);
                 buf[80] = '\0';
                 fprintf(stdout, "%s", buf);
             }
@@ -570,9 +598,9 @@ next:
             contig_lengths.append(to - from);
 
             contig += 1;
-        } while (args.split && to < (seq->length - args.min_length));
+        } while (args.split && to < (seq.length - args.min_length));
       
-        clear_seq(*seq);
+        seq.clear();
     }
 
     read_lengths.sort();
@@ -607,7 +635,6 @@ next:
     fprint_vector_stats(stderr, read_lengths, "original read length statistics:");
     fprint_vector_stats(stderr, contig_lengths, "retained contig length statistics:");
 
-    delete seq;
     delete machine;
 
     return 0;

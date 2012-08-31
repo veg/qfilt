@@ -6,10 +6,31 @@
 
 #define DEFAULT_SZ 1024L
 
-inline void __check_ptr(const void * ptr, const char * file, const unsigned line)
+inline
+const char * basename(const char * path)
+{
+    long i;
+    
+    if (path == NULL)
+        return NULL;
+
+    for (i = strlen(path) - 1; i >= 0; --i) {
+#ifdef _WIN32
+        if (path[i] == '\\')
+#else
+        if (path[i] == '/')
+#endif
+            return &path[i + 1]; 
+    }
+
+    return path;
+}
+
+inline
+void __check_ptr(const void * ptr, const char * file, const unsigned line)
 {
     if (ptr == NULL) {
-        fprintf(stderr, "\nERROR (file: %s, line %d): memory allocation failure\n", file, line);
+        fprintf(stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename(file), line);
         exit(1);
     }
 }
@@ -25,14 +46,14 @@ int __elem_cmp(const void * a, const void * b)
 
 template<class T>
 class vector {
+  private:
+    void __resize(long);
+
   protected:
     T * data;
-    long len, size;
+    long len, capacity;
   
     void init();
-    void destroy() {
-        free(data);
-    }
 
   public:
     vector() {
@@ -42,10 +63,7 @@ class vector {
         return len;
     }
     void append(const T);
-    void clear() {
-        len = 0;
-        data[0] = NULL;
-    }
+    void clear();
     int compare(vector<T> &) const;
     void extend(const T *, long);
     void extend(vector<T> &, long, long);
@@ -57,7 +75,8 @@ class vector {
         return data[i];
     };
     ~vector() {
-        destroy();
+        if (data != NULL)
+            free(data);
     }
 };
 
@@ -86,9 +105,6 @@ class string : public vector<char> {
         long i;
         for (i = 0; i < len; ++i)
             data[i] = toupper(data[i]);
-    }
-    ~string() {
-        destroy();
     }
 };
 

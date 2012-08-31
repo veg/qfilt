@@ -3,14 +3,31 @@
 
 // #include <cstdlib> // included by parent: vector.h
 
+// private methods
+
+template<class T>
+inline
+void vector<T>::__resize(long rlen)
+{
+    if (rlen >= capacity) {
+        const long incr = (capacity / 8 < DEFAULT_SZ) ? DEFAULT_SZ : capacity / 8,
+                   rcap = incr * ((rlen + 1) / incr + 1);
+        fprintf(stderr, "resizing capacity from: %ld to: %ld\n", capacity, rcap);
+        void * ptr = realloc(data, sizeof(T) * rcap);
+        __check_ptr(ptr, __FILE__, __LINE__);
+        data = reinterpret_cast<T *>(ptr);
+        capacity = rcap;
+    }
+}
+
 // protected methods
 
 template<class T>
 void vector<T>::init()
 {
-    data = (T *) malloc(sizeof(T) * DEFAULT_SZ);
+    data = reinterpret_cast<T *>(calloc(DEFAULT_SZ, sizeof(T)));
     __check_ptr(data, __FILE__, __LINE__);
-    size = DEFAULT_SZ;
+    capacity = DEFAULT_SZ;
     len = 0;
     data[len] = NULL;
 }
@@ -20,17 +37,22 @@ void vector<T>::init()
 template<class T>
 void vector<T>::append(const T item)
 {
-    if (size == len) {
-        long increase = size / 8;
-        if (increase < DEFAULT_SZ)
-            increase = DEFAULT_SZ;
-        data = (T *) realloc(data, sizeof(T) * (size + increase));
-        __check_ptr(data, __FILE__, __LINE__);
-        size += increase;
-    }
+    __resize(len + 1);
     data[len] = item;
     len += 1;
     data[len] = NULL;
+}
+
+template<class T>
+void vector<T>::clear()
+{
+    if (capacity > DEFAULT_SZ) {
+        void * ptr = realloc(data, sizeof(T) * DEFAULT_SZ);
+        __check_ptr(ptr, __FILE__, __LINE__);
+        data = reinterpret_cast<T *>(ptr);
+    }
+    len = 0;
+    memset(data, NULL, sizeof(T) * capacity);
 }
 
 template<class T>
@@ -62,22 +84,11 @@ void vector<T>::extend(const T * vec, long nitem)
     if (nitem <= 0)
         return;
     else {
-        // don't forget the extra null byte (1 + ...)
-        const long diff = 1 + len + nitem - size;
-        if (diff < 0) {
-            long inc = size / 8,
-                 increase;
-            if (inc < DEFAULT_SZ)
-                inc = DEFAULT_SZ;
-            increase = inc;
-            while (increase < diff)
-                increase += inc;
-            data = (char *) realloc(data, sizeof(T) * (size + increase));
-            __check_ptr(data, __FILE__, __LINE__);
-            size += increase;
-        }
-        memcpy(&data[len], vec, sizeof(T) * nitem);
+        __resize(len + nitem);
+        fprintf(stderr, "memcpying %ld items into vector with %ld remaining slots\n", nitem, capacity - len);
+        memcpy(data + len, vec, sizeof(T) * nitem);
         len += nitem;
+        fprintf(stderr, "len: %ld, cap: %ld\n", len, capacity);
         data[len] = NULL;
     }
 }
@@ -89,7 +100,7 @@ void vector<T>::extend(vector & vec, long from, long to)
     if (vec.length() <= 0 || nitem <= 0)
         return;
     else
-        extend(&vec.data[from], nitem);
+        extend(vec.data + from, nitem);
 }
 
 template<class T>
