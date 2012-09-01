@@ -645,10 +645,10 @@ int main(int argc, const char * argv[])
                     // if homopolymer (toupper => equiv), continue
                     if (args.homo && toupper(last) == toupper(curr))
                         goto next;
-                    // if skipping Ns, continue
+                    // if skipping Ns, continue (without assigning last)
                     else if (args.skipN && (curr == 'N' || curr == 'n')) {
                         nambigs += 1;
-                        goto next;
+                        continue;
                     }
                     // otherwise, ABORT!!!
                     else
