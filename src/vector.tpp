@@ -3,16 +3,20 @@
 
 // #include <cstdlib> // included by parent: vector.h
 
+#define DEFAULT_SZ 1024L
+
 // private methods
 
 template<class T>
 inline
-void vector<T>::__resize(long rlen)
+void vec_t<T>::__resize(long rlen)
 {
-    if (rlen >= capacity) {
+    // don't forget the null terminating byte
+    rlen += 1;
+
+    if (rlen > capacity) {
         const long incr = (capacity / 8 < DEFAULT_SZ) ? DEFAULT_SZ : capacity / 8,
-                   rcap = incr * ((rlen + 1) / incr + 1);
-        fprintf(stderr, "resizing capacity from: %ld to: %ld\n", capacity, rcap);
+                   rcap = incr * (rlen / incr + 1);
         void * ptr = realloc(data, sizeof(T) * rcap);
         __check_ptr(ptr, __FILE__, __LINE__);
         data = reinterpret_cast<T *>(ptr);
@@ -23,9 +27,9 @@ void vector<T>::__resize(long rlen)
 // protected methods
 
 template<class T>
-void vector<T>::init()
+void vec_t<T>::init()
 {
-    data = reinterpret_cast<T *>(calloc(DEFAULT_SZ, sizeof(T)));
+    data = reinterpret_cast<T *>(malloc(sizeof(T) * DEFAULT_SZ));
     __check_ptr(data, __FILE__, __LINE__);
     capacity = DEFAULT_SZ;
     len = 0;
@@ -35,28 +39,31 @@ void vector<T>::init()
 // public methods
 
 template<class T>
-void vector<T>::append(const T item)
+void vec_t<T>::append(const T item)
 {
     __resize(len + 1);
     data[len] = item;
     len += 1;
+    if (len >= capacity)
+        fprintf(stderr, "len >= capacity");
     data[len] = NULL;
 }
 
 template<class T>
-void vector<T>::clear()
+void vec_t<T>::clear()
 {
     if (capacity > DEFAULT_SZ) {
         void * ptr = realloc(data, sizeof(T) * DEFAULT_SZ);
         __check_ptr(ptr, __FILE__, __LINE__);
         data = reinterpret_cast<T *>(ptr);
+        capacity = DEFAULT_SZ;
     }
     len = 0;
-    memset(data, NULL, sizeof(T) * capacity);
+    data[len] = NULL;
 }
 
 template<class T>
-int vector<T>::compare(vector & vec) const
+int vec_t<T>::compare(vec_t<T> & vec) const
 {
     long minlen, i;
 
@@ -79,22 +86,20 @@ int vector<T>::compare(vector & vec) const
 }
 
 template<class T>
-void vector<T>::extend(const T * vec, long nitem)
+void vec_t<T>::extend(const T * vec, long nitem)
 {
     if (nitem <= 0)
         return;
     else {
         __resize(len + nitem);
-        fprintf(stderr, "memcpying %ld items into vector with %ld remaining slots\n", nitem, capacity - len);
         memcpy(data + len, vec, sizeof(T) * nitem);
         len += nitem;
-        fprintf(stderr, "len: %ld, cap: %ld\n", len, capacity);
         data[len] = NULL;
     }
 }
 
 template<class T>
-void vector<T>::extend(vector & vec, long from, long to)
+void vec_t<T>::extend(vec_t<T> & vec, long from, long to)
 {
     long nitem = to - from;
     if (vec.length() <= 0 || nitem <= 0)
@@ -104,7 +109,7 @@ void vector<T>::extend(vector & vec, long from, long to)
 }
 
 template<class T>
-void vector<T>::extend(vector & vec)
+void vec_t<T>::extend(vec_t<T> & vec)
 {
     extend(vec.data, vec.length());
 }

@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#define DEFAULT_SZ 1024L
-
 inline
 const char * basename(const char * path)
 {
@@ -45,7 +43,7 @@ int __elem_cmp(const void * a, const void * b)
 }
 
 template<class T>
-class vector {
+class vec_t {
   private:
     void __resize(long);
 
@@ -56,7 +54,7 @@ class vector {
     void init();
 
   public:
-    vector() {
+    vec_t() {
         init();
     }
     long length() const {
@@ -64,29 +62,29 @@ class vector {
     }
     void append(const T);
     void clear();
-    int compare(vector<T> &) const;
+    int compare(vec_t<T> &) const;
     void extend(const T *, long);
-    void extend(vector<T> &, long, long);
-    void extend(vector<T> &);
+    void extend(vec_t<T> &, long, long);
+    void extend(vec_t<T> &);
     void sort() {
         qsort(data, len, sizeof(T), __elem_cmp); 
     }
     T operator[](long i) const {
         return data[i];
     };
-    ~vector() {
+    ~vec_t() {
         if (data != NULL)
             free(data);
     }
 };
 
-class string : public vector<char> {
+class str_t : public vec_t<char> {
   public:
-    using vector<char>::extend;
-    string() {
+    using vec_t<char>::extend;
+    str_t() {
         init();
     }
-    string(const char * str) {
+    str_t(const char * str) {
         init();
         extend(str);
     }
