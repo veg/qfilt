@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(qfilt)
 
-#-------------------------------------------------------------------------------
-# default installation prefix
-#-------------------------------------------------------------------------------
 set(INSTALL_PREFIX /usr/local CACHE PATH "Installation prefix")
 set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE INTERNAL "Installation prefix" FORCE)
 
