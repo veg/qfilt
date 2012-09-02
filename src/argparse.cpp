@@ -154,7 +154,7 @@ void args_t::parse_mode(const char * str)
 
 void args_t::parse_tag(const char * str)
 {
-    int nvar = sscanf(tag, "%256s", str);
+    int nvar = sscanf(str, "%256s", tag);
     if (nvar != 1)
         PARSE_ERROR("failed to process tag argument %s", str);
     tag_length = strlen(tag);
