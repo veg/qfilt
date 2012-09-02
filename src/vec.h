@@ -1,5 +1,4 @@
 
-#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -58,56 +57,17 @@ class vec_t {
     void init();
 
   public:
-    vec_t() {
-        init();
-    }
-    long length() const {
-        return len;
-    }
+    vec_t();
+    ~vec_t();
+    long length() const;
     void append(const T);
     void clear();
     int compare(vec_t<T> &) const;
     void extend(const T *, long);
     void extend(vec_t<T> &, long, long);
     void extend(vec_t<T> &);
-    void sort() {
-        qsort(data, len, sizeof(T), __elem_cmp); 
-    }
-    T operator[](long i) const {
-        return data[i];
-    };
-    ~vec_t() {
-        if (data != NULL)
-            free(data);
-    }
-};
-
-class str_t : public vec_t<char> {
-  public:
-    using vec_t<char>::extend;
-    str_t() {
-        init();
-    }
-    str_t(const char * str) {
-        init();
-        extend(str);
-    }
-    char * c_str() const {
-        return data;
-    }
-    void extend(const char * str) {
-        extend(str, (long) strlen(str));
-    }
-    void lower() {
-        long i;
-        for (i = 0; i < len; ++i)
-            data[i] = tolower(data[i]);
-    }
-    void upper() {
-        long i;
-        for (i = 0; i < len; ++i)
-            data[i] = toupper(data[i]);
-    }
+    void sort();
+    T operator[](long i) const;
 };
 
 #include "vec.tpp"

@@ -29,14 +29,34 @@ void vec_t<T>::__resize(long rlen)
 template<class T>
 void vec_t<T>::init()
 {
-    data = reinterpret_cast<T *>(malloc(sizeof(T) * DEFAULT_SZ));
-    __check_ptr(data, __FILE__, __LINE__);
+    void * ptr = NULL;
+
+    if (!data)
+        ptr = malloc(sizeof(T) * DEFAULT_SZ);
+    else if (capacity > DEFAULT_SZ)
+        ptr = realloc(data, sizeof(T) * DEFAULT_SZ);
+
+    __check_ptr(ptr, __FILE__, __LINE__);
+    data = reinterpret_cast<T *>(ptr);
     capacity = DEFAULT_SZ;
     len = 0;
     data[len] = NULL;
 }
 
 // public methods
+
+template<class T>
+vec_t<T>::vec_t()
+{
+    init();
+}
+
+template<class T>
+vec_t<T>::~vec_t()
+{
+    if (data != NULL)
+        free(data);
+}
 
 template<class T>
 void vec_t<T>::append(const T item)
@@ -52,14 +72,8 @@ void vec_t<T>::append(const T item)
 template<class T>
 void vec_t<T>::clear()
 {
-    if (capacity > DEFAULT_SZ) {
-        void * ptr = realloc(data, sizeof(T) * DEFAULT_SZ);
-        __check_ptr(ptr, __FILE__, __LINE__);
-        data = reinterpret_cast<T *>(ptr);
-        capacity = DEFAULT_SZ;
-    }
-    len = 0;
-    data[len] = NULL;
+    // init resizes capacity to DEFAULT_SZ
+    init();
 }
 
 template<class T>
@@ -112,4 +126,22 @@ template<class T>
 void vec_t<T>::extend(vec_t<T> & vec)
 {
     extend(vec.data, vec.length());
+}
+
+template<class T>
+long vec_t<T>::length() const
+{
+    return len;
+}
+
+template<class T>
+void vec_t<T>::sort()
+{
+    qsort(data, len, sizeof(T), __elem_cmp); 
+}
+
+template<class T>
+T vec_t<T>::operator[](long i) const
+{
+    return data[i];
 }

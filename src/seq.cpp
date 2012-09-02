@@ -9,9 +9,58 @@
     exit(1); \
 }
 
+// pos_t methods
+
+pos_t::pos_t(const char * file) : file(file), line(1), col(1)
+{
+    cols = new vec_t<unsigned long>; 
+}
+
+pos_t::~pos_t()
+{
+    delete cols;
+}
+
+void pos_t::get(const char * & f, long & l, long & c)
+{
+    f = file;
+    l = line;
+    c = col;
+}
+
+// seq_t methods
+
+seq_t::seq_t() : length(0)
+{
+    id = new str_t();
+    seq = new str_t();
+    quals = new vec_t<long>();
+}
+
+seq_t::~seq_t()
+{
+    if (id) delete id;
+    if (seq) delete seq;
+    if (quals) delete quals;
+}
+
+void seq_t::clear()
+{
+    id->clear();
+    seq->clear();
+    quals->clear();
+    length = 0;
+}
+
+// helper functions for parser_t
+
 inline
-void parse_error(const char * msg, pos_t & pos) {
-    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): %s\n", pos.file, pos.line, pos.col, msg);
+void parse_error(const char * msg, pos_t & pos)
+{
+    const char * file;
+    long line, col;
+    pos.get(file, line, col);
+    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): %s\n", file, line, col, msg);
     exit(1);
 }
 
@@ -22,11 +71,10 @@ char fgetc_skip_ws(FILE * file, pos_t & pos)
     do {
         c = fgetc(file);
         if (c == '\n') {
-            pos.line += 1;
-            pos.col = 0;
+            pos.next_line();
         }
         else if (c != EOF) {
-            pos.col += 1;
+            pos.next_col();
         }
     } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
     return c;
@@ -61,13 +109,12 @@ int extend_until(str_t & str, const char until, FILE * file, pos_t & pos, bool t
                 break;
             // otherwise increment the position column
             else
-                pos.col += 1;
+                pos.next_col();
         }
 
         // handle EOL
         if (buf[len - 1] == '\n') {
-            pos.line += 1;
-            pos.col = 0;
+            pos.next_line();
 
             // if we're not trimming, append the newline
             if (!trim)
@@ -99,11 +146,21 @@ int extend_until(str_t & str, const char until, FILE * file, pos_t & pos)
 
 // parser methods
 
+// protected parser methods
+
+void parser_t::init()
+{
+    qid = new str_t();
+    qs = new str_t();
+}
+
+// public parser methods
+
 parser_t::parser_t(const char * fastq_file):
     fasta(NULL),
     qual(NULL),
-    fpos(pos_t(fastq_file, 0, 0)),
-    qpos(pos_t(NULL, 0, 0)),
+    fpos(pos_t(fastq_file)),
+    qpos(pos_t(NULL)),
     fstate(UNKNOWN),
     qstate(UNKNOWN)
 {
@@ -119,8 +176,8 @@ parser_t::parser_t(const char * fastq_file):
 
 parser_t::parser_t(const char * fasta_file, const char * qual_file):
     fastq(NULL),
-    fpos(pos_t(fasta_file, 0, 0)),
-    qpos(pos_t(qual_file, 0, 0)),
+    fpos(pos_t(fasta_file)),
+    qpos(pos_t(qual_file)),
     fstate(UNKNOWN),
     qstate(UNKNOWN)
 {
@@ -139,6 +196,20 @@ parser_t::parser_t(const char * fasta_file, const char * qual_file):
     }
 
     init();
+}
+
+parser_t::~parser_t()
+{
+    if (fasta)
+        fclose(fasta);
+    if (fastq)
+        fclose(fastq);
+    if (qual)
+        fclose(qual);
+    if (qid)
+        delete qid;
+    if (qs)
+        delete qs;
 }
 
 bool parser_t::next(seq_t & seq)
@@ -198,7 +269,7 @@ begin:
                         if (filetype == FASTA) {
                             if (!feof(file))
                                 fseek(file, -1, SEEK_CUR);
-                            pos->col -= 1;
+                            pos->prev_col();
                             *state = UNKNOWN;
                         }
                         else // FASTQ
@@ -234,7 +305,7 @@ begin:
                 // reset the state to UNKNOWN and just prior to the header
                 if (!feof(file))
                     fseek(file, -1, SEEK_CUR);
-                pos->col -= 1;
+                pos->prev_col();
                 *state = UNKNOWN;
                 break;
             }

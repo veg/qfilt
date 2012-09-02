@@ -20,6 +20,7 @@ add_executable(
     src/main.cpp
     src/argparse.cpp
     src/seq.cpp
+    src/str.cpp
 )
 
 target_link_libraries (qfilt ${DEFAULT_LIBRARIES})

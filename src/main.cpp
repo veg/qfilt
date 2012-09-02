@@ -1,16 +1,15 @@
 
-
+#include <cctype>
 #include <cmath>
 
 #include "argparse.h"
 #include "seq.h"
 #include "vec.h"
 
-/*
+#if 0
 static const char * const valid_chars = "ACGTNacgtn";
-
 static long char_lookup[256];
-*/
+#endif
 
 // vec must be sorted
 void fprint_vector_stats(FILE * file, vec_t<long> & vec, const char * hdr)
@@ -68,9 +67,9 @@ void fprint_vector_stats(FILE * file, vec_t<long> & vec, const char * hdr)
 
 int main(int argc, const char * argv[])
 {
-    args_t args;
+    args_t args = args_t(argc, argv);
 
-    parser_t * parser = NULL;
+    parser_t parser = (args.fastq) ? parser_t(args.fastq) : parser_t(args.fasta, args.qual);
 
     seq_t seq = seq_t();
 
@@ -84,17 +83,10 @@ int main(int argc, const char * argv[])
         char_lookup[valid_chars[i]] = i;
     */
 
-    parse_args(args, argc, argv);
-
-    if (args.fastq)
-        parser = new parser_t(args.fastq);
-    else
-        parser = new parser_t(args.fasta, args.qual);
-
     vec_t<long> read_lengths = vec_t<long>();
     vec_t<long> fragment_lengths = vec_t<long>();
 
-    for (; parser->next(seq); seq.clear()) {
+    for (; parser.next(seq); seq.clear()) {
         // maxto is the maximum value of "to",
         // NOT THE UPPER BOUND
         const long maxto = seq.length - args.min_length;
@@ -110,7 +102,8 @@ int main(int argc, const char * argv[])
             long mismatch = 0;
 
             for (to = 0; to < args.tag_length; ++to) {
-                if ((*seq.seq)[to] != args.tag[to])
+                // tolower -> case insensitive
+                if (toupper((*seq.seq)[to]) != toupper(args.tag[to]))
                     mismatch += 1;
             }
 
@@ -149,7 +142,7 @@ int main(int argc, const char * argv[])
                      last = -1;
 
                 if ((*seq.quals)[to] < args.min_qscore) {
-                    // if homopolymer (toupper => equiv), continue (last == curr)
+                    // if homopolymer (toupper -> case insensitive), continue (last == curr)
                     if (args.hpoly && toupper(last) == toupper(curr))
                         continue;
                     // if skipping Ns, continue (without assigning last)
@@ -257,8 +250,6 @@ int main(int argc, const char * argv[])
 
     fprint_vector_stats(stderr, read_lengths, "\noriginal read length distribution:");
     fprint_vector_stats(stderr, fragment_lengths, "\nretained fragment length distribution:");
-
-    delete parser;
 
     return 0;
 }
