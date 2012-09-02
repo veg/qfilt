@@ -115,7 +115,6 @@ int main(int argc, const char * argv[])
         // continue the following process until we reach the end of the sequence,
         // but only continue if there's enough left to produce a minimum-sized fragment
         while (true) {
-            char buf[256] = "\n";
             long from = 0,
                  i = 0,
                  nambigs = 0;
@@ -127,10 +126,8 @@ int main(int argc, const char * argv[])
 
             // if we don't have enough length left,
             // skip to the next sequence
-            if (to > maxto) {
-                fprintf(stderr, "skipping %s because insufficient sequence length remains (to: %ld, maxto: %ld)\n", seq.id->c_str(), to, maxto);
+            if (to > maxto)
                 break;
-            }
 
             // begin with positive quality score
             from = to;
@@ -162,23 +159,25 @@ int main(int argc, const char * argv[])
 
             // if our fragment isn't long enough,
             // skip to the next fragment
-            if (to - from - nambigs < args.min_length) {
-                fprintf(stderr, "skipping %s because of insufficient fragment length (from: %ld, to: %ld, nambigs: %ld)\n", seq.id->c_str(), from, to, nambigs);
+            if (to - from - nambigs < args.min_length)
                 continue;
-            }
 
-            // give the read a fragment identifier (if there's more than 1)
+            // print the read ID
+            fprintf(stdout, ">%s", seq.id->c_str());
+
+            // print the fragment identifier
             if (nfragment > 0)
-                sprintf(buf, " fragment=%ld\n", nfragment);
-            // if its the first fragment, count the contributing read
-            else
+                fprintf(stdout, " fragment=%ld\n", nfragment);
+            else {
+                fprintf(stdout, "\n");
+                // if it's the first fragment,
+                // count the contributing read
                 ncontrib += 1;
-
-            // print the read ID (with fragment identifier)
-            fprintf(stdout, ">%s%s", seq.id->c_str(), buf);
+            }
 
             // print the read sequence
             for (i = from; i < to; i += 60) {
+                char buf[61];
                 const int nitem = (to - i < 60) ? to - i : 60;
                 strncpy(buf, seq.seq->c_str() + i, nitem);
                 buf[nitem] = '\0';
