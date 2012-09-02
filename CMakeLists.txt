@@ -17,7 +17,9 @@ include_directories(
 
 add_executable(
     qfilt
-    src/qfilt.cpp
+    src/main.cpp
+    src/argparse.cpp
+    src/seq.cpp
 )
 
 target_link_libraries (qfilt ${DEFAULT_LIBRARIES})

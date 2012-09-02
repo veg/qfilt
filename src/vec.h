@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifndef VEC_H
+#define VEC_H
+
 inline
 const char * basename(const char * path)
 {
@@ -33,6 +36,7 @@ void __check_ptr(const void * ptr, const char * file, const unsigned line)
     }
 }
 
+inline
 int __elem_cmp(const void * a, const void * b)
 {
     if (*(long *) a < *(long *) b)
@@ -106,4 +110,6 @@ class str_t : public vec_t<char> {
     }
 };
 
-#include "vector.tpp"
+#include "vec.tpp"
+
+#endif // VEC_H
