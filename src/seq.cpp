@@ -9,6 +9,15 @@
     exit(1); \
 }
 
+#define PARSE_ERROR(msg, pos, args...) \
+{ \
+    const char * file; \
+    long line, col; \
+    (pos).get(file, line, col); \
+    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args); \
+    exit(1); \
+}
+
 // pos_t methods
 
 pos_t::pos_t(const char * file) : file(file), line(1), col(1)
@@ -55,16 +64,6 @@ void seq_t::clear()
 // helper functions for parser_t
 
 inline
-void parse_error(const char * msg, pos_t & pos)
-{
-    const char * file;
-    long line, col;
-    pos.get(file, line, col);
-    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): %s\n", file, line, col, msg);
-    exit(1);
-}
-
-inline
 char fgetc_skip_ws(FILE * file, pos_t & pos)
 {
     char c;
@@ -87,35 +86,35 @@ int extend_until(str_t & str, const char until, FILE * file, pos_t & pos, bool t
 
     while (fgets(buf, 256, file)) {
         long len = strlen(buf),
-             i;
+             i = 0;
 
         for (i = 0; i < len; ++i) {
             const char c = buf[i];
-            // if we hit either a newline or until
-            // extend str up until this point
-            if (c == '\n' || c == until) {
-                str.extend(buf, i);
-                total += i;
-            }
-            // if we hit until,
-            // rewind by what's left over
+            // if we hit until then extend the str,
+            // rewind by what remains of buf,
+            // and return
             if (c == until) {
+                str.extend(buf, i);
                 fseek(file, i - len + 1, SEEK_CUR);
-                return total;
+                return total + i;
             }
             // if we hit newline,
             // break out for EOL handling below
-            else if (c == '\n')
+            else if (c == '\n') {
+                pos.next_line();
                 break;
+            }
             // otherwise increment the position column
             else
                 pos.next_col();
         }
 
+        // extend str up until this point
+        str.extend(buf, i);
+        total += i;
+
         // handle EOL
         if (buf[len - 1] == '\n') {
-            pos.next_line();
-
             // if we're not trimming, append the newline
             if (!trim)
                 str.append('\n');
@@ -231,15 +230,20 @@ begin:
                 else if (c == EOF)
                     return false;
                 else
-                    parse_error("malformed file", *pos);
+                    PARSE_ERROR("malformed file", *pos)
                 break;
             }
             case ID: {
                 str_t * str = (filetype == QUAL) ? qid : seq.id;
                 int nelem = extend_until(*str, '\n', file, *pos);
                 if (nelem < 1)
-                    parse_error("malformed file: missing ID", *pos);
-                *state = (filetype == QUAL) ? QUALITY : SEQUENCE;
+                    PARSE_ERROR("malformed file: missing ID", *pos)
+                if (filetype == QUAL) {
+                    qid->clear();
+                    *state = QUALITY;
+                }
+                else
+                    *state = SEQUENCE;
                 break;
             }
             case SEQUENCE: {
@@ -249,28 +253,41 @@ begin:
                         int nelem;
                         nelem = extend_until(*seq.seq, sep, file, *pos);
                         if (nelem < 1)
-                            parse_error("malformed file: missing sequence", *pos);
+                            PARSE_ERROR("malformed file: missing sequence", *pos)
                         if (filetype == FASTA) {
                             if (!feof(file)) {
-                                fseek(file, -1, SEEK_CUR);
+                                const int err = fseek(file, -1, SEEK_CUR);
+                                if (err)
+                                    MALFUNCTION()
                                 pos->prev_col();
                             }
                             *state = UNKNOWN;
                         }
-                        else // FASTQ
+                        else { // FASTQ
+                            // skip the whitespace after the + separator
+                            const char c = fgetc_skip_ws(file, *pos);
+                            const int err = ungetc(c, file);
+                            if (c == EOF)
+                                PARSE_ERROR("malformed file: missing quality scores", *pos)
+                            if (err == EOF)
+                                MALFUNCTION()
+                            pos->prev_col();
                             *state = QUALITY;
+                        }
                         break;
                     }
                     default:
-                        MALFUNCTION();
+                        MALFUNCTION()
                 }
                 break;
             }
             case QUALITY: {
-                int nelem = extend_until(*qs, hdr, file, *pos, false);
+                // in FASTQ, the an @ doesn't just denote an id,
+                // but can also appear in the quality scores (as 31)
+                // in order to fix this, scan until a newline
+                int nelem = extend_until(*qs, (filetype == QUAL) ? hdr : '\n', file, *pos, false);
                 if (nelem < 1)
-                    parse_error("malformed file: missing quality scores", *pos);
-
+                    PARSE_ERROR("malformed file: missing quality scores", *pos)
                 if (filetype == QUAL) {
                     char * buf = strtok(qs->c_str(), " \t\n\r");
                     while (buf != NULL) {
@@ -288,7 +305,7 @@ begin:
                 // clear the qual data after use
                 qs->clear();
                 // reset the state to UNKNOWN and just prior to the header
-                if (!feof(file)) {
+                if (filetype == QUAL && !feof(file)) {
                     fseek(file, -1, SEEK_CUR);
                     pos->prev_col();
                 }
@@ -296,7 +313,7 @@ begin:
                 break;
             }
             default:
-                MALFUNCTION();
+                MALFUNCTION()
         }
     } while (*state != UNKNOWN);
 
@@ -308,17 +325,13 @@ begin:
         goto begin;
     }
 
-    if (file == qual && seq.seq->length() != seq.quals->length()) {
-        char buf[512];
-        fprintf(stderr, "seq: %s\n", seq.seq->c_str());
-        sprintf(
-            buf,
+    if (file == qual && seq.seq->length() != seq.quals->length())
+        PARSE_ERROR(
             "malformed file: sequence length (%ld) does not match the number of quality scores (%ld)",
+            *pos,
             seq.seq->length(),
             seq.quals->length()
-        );
-        parse_error(buf, *pos);
-    }
+        )
     else
         seq.length = seq.seq->length();
 

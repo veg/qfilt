@@ -129,7 +129,7 @@ void args_t::parse_fastq(const char * str)
 void args_t::parse_minlength(const char * str)
 {
     min_length = atoi(str);
-    if (min_length <= 1)
+    if (min_length < 1)
         PARSE_ERROR("minimum length expected a positive integer, had: %s", str);
 }
 
