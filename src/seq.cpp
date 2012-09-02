@@ -235,27 +235,11 @@ begin:
                 break;
             }
             case ID: {
-                switch (filetype) {
-                    case FASTA:
-                    case FASTQ: {
-                        int nelem = extend_until(*seq.id, '\n', file, *pos);
-                        if (nelem < 1)
-                            parse_error("malformed file: missing ID", *pos);
-                        *state = SEQUENCE;
-                        break;
-                    }
-                    case QUAL: {
-                        int nelem = extend_until(*qid, '\n', file, *pos);
-                        if (nelem < 1)
-                            parse_error("malformed file: missing ID", *pos);
-                        // clear the qid after use
-                        qid->clear();
-                        *state = QUALITY;
-                        break;
-                    }
-                    default:
-                        MALFUNCTION();
-                }
+                str_t * str = (filetype == QUAL) ? qid : seq.id;
+                int nelem = extend_until(*str, '\n', file, *pos);
+                if (nelem < 1)
+                    parse_error("malformed file: missing ID", *pos);
+                *state = (filetype == QUAL) ? QUALITY : SEQUENCE;
                 break;
             }
             case SEQUENCE: {
@@ -267,9 +251,10 @@ begin:
                         if (nelem < 1)
                             parse_error("malformed file: missing sequence", *pos);
                         if (filetype == FASTA) {
-                            if (!feof(file))
+                            if (!feof(file)) {
                                 fseek(file, -1, SEEK_CUR);
-                            pos->prev_col();
+                                pos->prev_col();
+                            }
                             *state = UNKNOWN;
                         }
                         else // FASTQ
@@ -303,9 +288,10 @@ begin:
                 // clear the qual data after use
                 qs->clear();
                 // reset the state to UNKNOWN and just prior to the header
-                if (!feof(file))
+                if (!feof(file)) {
                     fseek(file, -1, SEEK_CUR);
-                pos->prev_col();
+                    pos->prev_col();
+                }
                 *state = UNKNOWN;
                 break;
             }
@@ -324,6 +310,7 @@ begin:
 
     if (file == qual && seq.seq->length() != seq.quals->length()) {
         char buf[512];
+        fprintf(stderr, "seq: %s\n", seq.seq->c_str());
         sprintf(
             buf,
             "malformed file: sequence length (%ld) does not match the number of quality scores (%ld)",

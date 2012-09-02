@@ -3,14 +3,10 @@
 
 #include "str.h"
 
-str_t::str_t()
-{
-    init();
-}
+str_t::str_t() {}
 
 str_t::str_t(const char * str)
 {
-    init();
     extend(str);
 }
 

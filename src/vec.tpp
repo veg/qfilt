@@ -35,10 +35,13 @@ void vec_t<T>::init()
         ptr = malloc(sizeof(T) * DEFAULT_SZ);
     else if (capacity > DEFAULT_SZ)
         ptr = realloc(data, sizeof(T) * DEFAULT_SZ);
+    else
+        goto end;
 
     __check_ptr(ptr, __FILE__, __LINE__);
     data = reinterpret_cast<T *>(ptr);
     capacity = DEFAULT_SZ;
+end:
     len = 0;
     data[len] = NULL;
 }
@@ -46,7 +49,7 @@ void vec_t<T>::init()
 // public methods
 
 template<class T>
-vec_t<T>::vec_t()
+vec_t<T>::vec_t() : data(NULL)
 {
     init();
 }
