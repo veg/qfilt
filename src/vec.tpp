@@ -1,8 +1,4 @@
 
-// #include "vector.h"
-
-// #include <cstdlib> // included by parent: vector.h
-
 #define DEFAULT_SZ 1024L
 
 // private methods

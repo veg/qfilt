@@ -2,7 +2,7 @@
 #ifndef STR_H
 #define STR_H
 
-#include "vec.h"
+#include "vec.hpp"
 
 class str_t : public vec_t<char> {
   public:

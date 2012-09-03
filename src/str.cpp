@@ -1,7 +1,7 @@
 
 #include <cctype>
 
-#include "str.h"
+#include "str.hpp"
 
 str_t::str_t() {}
 

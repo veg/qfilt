@@ -4,8 +4,8 @@
 
 #include <cstdio>
 
-#include "str.h"
-#include "vec.h"
+#include "str.hpp"
+#include "vec.hpp"
 
 enum state_t
 {

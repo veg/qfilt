@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "argparse.h"
+#include "argparse.hpp"
 
 // some crazy shit for stringifying preprocessor directives
 #define STRIFY(x) #x

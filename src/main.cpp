@@ -2,9 +2,9 @@
 #include <cctype>
 #include <cmath>
 
-#include "argparse.h"
-#include "seq.h"
-#include "vec.h"
+#include "argparse.hpp"
+#include "seq.hpp"
+#include "vec.hpp"
 
 #if 0
 static const char * const valid_chars = "ACGTNacgtn";

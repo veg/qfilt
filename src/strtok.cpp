@@ -1,8 +1,8 @@
 
 #include <cstring>
 
-#include "common.h"
-#include "strtok.h"
+#include "common.hpp"
+#include "strtok.hpp"
 
 // strtok_t methods
 

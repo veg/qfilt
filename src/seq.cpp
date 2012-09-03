@@ -1,6 +1,6 @@
 
-#include "seq.h"
-#include "strtok.h"
+#include "seq.hpp"
+#include "strtok.hpp"
 
 // helper classes and functions
 
