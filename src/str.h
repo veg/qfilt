@@ -1,8 +1,8 @@
 
-#include "vec.h"
-
 #ifndef STR_H
 #define STR_H
+
+#include "vec.h"
 
 class str_t : public vec_t<char> {
   public:
@@ -10,7 +10,7 @@ class str_t : public vec_t<char> {
 
     str_t();
     str_t(const char * str);
-    char * c_str() const;
+    const char * c_str() const;
     void extend(const char * str);
     void lower();
     void upper();

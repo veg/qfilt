@@ -1,11 +1,11 @@
 
+#ifndef SEQ_H
+#define SEQ_H
+
 #include <cstdio>
 
 #include "str.h"
 #include "vec.h"
-
-#ifndef SEQ_H
-#define SEQ_H
 
 enum state_t
 {
@@ -32,7 +32,7 @@ class pos_t {
   public:
     pos_t(const char * file);
     ~pos_t();
-    void get(const char * & f, long & l, long & c);
+    void get(const char * & f, long & l, long & c) const;
 
     inline
     void next_col()

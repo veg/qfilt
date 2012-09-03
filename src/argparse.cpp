@@ -47,7 +47,7 @@ void help()
     exit(1);
 }
 
-#define PARSE_ERROR(msg, args...) \
+#define ERROR(msg, args...) \
 { \
     fprintf(stderr, "%s" QFILT ": error: " msg "\n", usage , ##args); \
     exit(1); \
@@ -87,7 +87,7 @@ args_t::args_t(int argc, const char * argv[]) :
             else if (!strcmp(&arg[2], "tagmismatch")) parse_tagmismatch(argv[++i]);
 #endif
             else
-                PARSE_ERROR("unknown argument: %s", arg);
+                ERROR("unknown argument: %s", arg);
         }
         else if (arg[0] == '-') {
                  if (!strcmp(&arg[1], "F")) parse_fastq(argv[++i]);
@@ -99,20 +99,20 @@ args_t::args_t(int argc, const char * argv[]) :
             else if (!strcmp(&arg[1], "t")) parse_tagmismatch(argv[++i]);
             else if (!strcmp(&arg[1], "h")) help();
             else
-                PARSE_ERROR("unknown argument: %s", arg);
+                ERROR("unknown argument: %s", arg);
         }
         else
-            PARSE_ERROR("unknown argument: %s", arg);
+            ERROR("unknown argument: %s", arg);
     }
 
     if (!fastq && (!fasta || !qual))
-        PARSE_ERROR("missing required argument -F FASTQ or -Q FASTA QUAL");
+        ERROR("missing required argument -F FASTQ or -Q FASTA QUAL");
 }
 
 void args_t::parse_qual(const char * fstr, const char * qstr)
 {
     if (fastq)
-        PARSE_ERROR("-Q and -F are mutually exclusive");
+        ERROR("-Q and -F are mutually exclusive");
 
     fasta = fstr;
     qual = qstr;
@@ -121,7 +121,7 @@ void args_t::parse_qual(const char * fstr, const char * qstr)
 void args_t::parse_fastq(const char * str)
 {
     if (fasta || qual)
-        PARSE_ERROR("-F and -Q are mutually exclusive");
+        ERROR("-F and -Q are mutually exclusive");
 
     fastq = str;
 }
@@ -130,14 +130,14 @@ void args_t::parse_minlength(const char * str)
 {
     min_length = atoi(str);
     if (min_length < 1)
-        PARSE_ERROR("minimum length expected a positive integer, had: %s", str);
+        ERROR("minimum length expected a positive integer, had: %s", str);
 }
 
 void args_t::parse_minqscore(const char * str)
 {
     min_qscore = atoi(str);
     if (min_qscore < 0)
-        PARSE_ERROR("min q-score expected a non-negative integer, had: %s", str);
+        ERROR("min q-score expected a non-negative integer, had: %s", str);
 }
 
 void args_t::parse_mode(const char * str)
@@ -145,7 +145,7 @@ void args_t::parse_mode(const char * str)
     int mode = atoi(str);
 
     if (mode < 0 || mode > 7)
-        PARSE_ERROR("mode must be an integer in [0, 7], had: %s", str);
+        ERROR("mode must be an integer in [0, 7], had: %s", str);
 
     split = (mode & 1);
     hpoly = (mode & 2);
@@ -156,7 +156,7 @@ void args_t::parse_tag(const char * str)
 {
     int nvar = sscanf(str, "%256s", tag);
     if (nvar != 1)
-        PARSE_ERROR("failed to process tag argument %s", str);
+        ERROR("failed to process tag argument %s", str);
     tag_length = strlen(tag);
 }
 
@@ -164,5 +164,5 @@ void args_t::parse_tagmismatch(const char * str)
 {
     tag_mismatch = atoi(str);
     if (tag_mismatch < 0)
-        PARSE_ERROR("maximum tag mismatch expected non-negative integer, had: %s", str);
+        ERROR("maximum tag mismatch expected non-negative integer, had: %s", str);
 }

@@ -10,7 +10,7 @@ str_t::str_t(const char * str)
     extend(str);
 }
 
-char * str_t::c_str() const
+const char * str_t::c_str() const
 {
     return data;
 }

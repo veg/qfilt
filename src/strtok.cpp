@@ -1,0 +1,44 @@
+
+#include <cstring>
+
+#include "common.h"
+#include "strtok.h"
+
+// strtok_t methods
+
+strtok_t::strtok_t(const char * s) : len(strlen(s))
+{
+    str = strdup(s);
+    __check_ptr(str, __FILE__, __LINE__);
+    ptr = str;
+}
+
+strtok_t::~strtok_t()
+{
+    if (str)
+        free(str);
+}
+
+char * strtok_t::next(const char * delim)
+{
+    char * pch = strpbrk(ptr, delim);
+
+    // skip leading delims
+    while (pch && ptr == pch) {
+        ptr = pch + 1;
+        pch = strpbrk(ptr, delim);
+    }
+    
+    // if we advanced more than 1,
+    // and aren't NULL, then set the null byte
+    // advance the ptr to just after the null byte,
+    // and return
+    if (pch) {
+        char * tmp = ptr;
+        pch[0] = '\0';
+        ptr = pch + 1;
+        return tmp;
+    }
+        
+    return NULL;
+}

@@ -16,6 +16,7 @@ add_executable(
     src/argparse.cpp
     src/seq.cpp
     src/str.cpp
+    src/strtok.cpp
 )
 
 target_link_libraries(qfilt m)

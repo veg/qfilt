@@ -1,11 +1,12 @@
 
 #include "seq.h"
+#include "strtok.h"
 
 // helper classes and functions
 
 #define MALFUNCTION() \
 { \
-    fprintf(stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", __FILE__, __LINE__); \
+    fprintf(stderr, "\nPARSE_ERROR (file: %s, line: %d): state machine malfunction\n", __FILE__, __LINE__); \
     exit(1); \
 }
 
@@ -14,7 +15,7 @@
     const char * file; \
     long line, col; \
     (pos).get(file, line, col); \
-    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args); \
+    fprintf(stderr, "\nPARSE_ERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args); \
     exit(1); \
 }
 
@@ -30,7 +31,7 @@ pos_t::~pos_t()
     delete cols;
 }
 
-void pos_t::get(const char * & f, long & l, long & c)
+void pos_t::get(const char * & f, long & l, long & c) const
 {
     f = file;
     l = line;
@@ -166,7 +167,7 @@ parser_t::parser_t(const char * fastq_file):
     fastq = fopen(fastq_file, "rb");
     if (!fastq)
     {
-        fprintf(stderr, "\nERROR: failed to open the FASTQ file %s\n", fastq_file);
+        fprintf(stderr, "\nPARSE_ERROR: failed to open the FASTQ file %s\n", fastq_file);
         exit(1);
     }
 
@@ -183,14 +184,14 @@ parser_t::parser_t(const char * fasta_file, const char * qual_file):
     fasta = fopen(fasta_file, "rb");
     if (!fasta)
     {
-        fprintf(stderr, "\nERROR: failed to open the FASTA file %s\n", fasta_file);
+        fprintf(stderr, "\nPARSE_ERROR: failed to open the FASTA file %s\n", fasta_file);
         exit(1);
     }
 
     qual = fopen(qual_file, "rb");
     if (!qual)
     {
-        fprintf(stderr, "\nERROR: failed to open the QUAL file %s\n", qual_file);
+        fprintf(stderr, "\nPARSE_ERROR: failed to open the QUAL file %s\n", qual_file);
         exit(1);
     }
 
@@ -289,11 +290,10 @@ begin:
                 if (nelem < 1)
                     PARSE_ERROR("malformed file: missing quality scores", *pos)
                 if (filetype == QUAL) {
-                    char * buf = strtok(qs->c_str(), " \t\n\r");
-                    while (buf != NULL) {
+                    char * buf = NULL;
+                    strtok_t tok(qs->c_str());
+                    while ((buf = tok.next(" \t\n")))
                         seq.quals->append(atoi(buf));
-                        buf = strtok(NULL, " \t\n\r");
-                    }
                 }
                 else { // FASTQ
                     int i;
