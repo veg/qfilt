@@ -8,7 +8,7 @@
 
 strtok_t::strtok_t(const char * s) : str(strdup(s))
 {
-    __check_ptr(str, __FILE__, __LINE__);
+    __CHECK_PTR(str)
     ptr = str;
 }
 

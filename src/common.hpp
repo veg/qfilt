@@ -26,13 +26,12 @@ const char * basename(const char * path)
     return path;
 }
 
-inline
-void __check_ptr(const void * ptr, const char * file, const unsigned line)
-{
-    if (ptr == NULL) {
-        fprintf(stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename(file), line);
-        exit(1);
-    }
+#define __CHECK_PTR(ptr) \
+{ \
+    if (ptr == NULL) { \
+        fprintf(stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename(__FILE__), __LINE__); \
+        exit(1); \
+    } \
 }
 
 #endif // COMMON_H

@@ -14,7 +14,7 @@ void vec_t<T>::__resize(long rlen)
         const long incr = (capacity / 8 < DEFAULT_SZ) ? DEFAULT_SZ : capacity / 8,
                    rcap = incr * (rlen / incr + 1);
         void * ptr = realloc(data, sizeof(T) * rcap);
-        __check_ptr(ptr, __FILE__, __LINE__);
+        __CHECK_PTR(ptr)
         data = reinterpret_cast<T *>(ptr);
         capacity = rcap;
     }
@@ -34,7 +34,7 @@ void vec_t<T>::init()
     else
         goto end;
 
-    __check_ptr(ptr, __FILE__, __LINE__);
+    __CHECK_PTR(ptr)
     data = reinterpret_cast<T *>(ptr);
     capacity = DEFAULT_SZ;
 end:

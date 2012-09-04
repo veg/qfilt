@@ -35,11 +35,17 @@ class pos_t {
     void get(const char * & f, long & l, long & c) const;
 
     inline
+    void next_col(const long ncol)
+    {
+        col += ncol;
+    }
+   
+    inline
     void next_col()
     {
-        col += 1;
+        next_col(1);
     }
-    
+
     inline
     void next_line()
     {
@@ -49,9 +55,15 @@ class pos_t {
     }
 
     inline
+    void prev_col(const long ncol)
+    {
+        col -= ncol;
+    }
+
+    inline
     void prev_col()
     {
-        col -= 1;
+        prev_col(1);
     }
 
     inline
@@ -83,6 +95,10 @@ class parser_t
     pos_t qpos;
     state_t fstate;
     state_t qstate;
+
+    // these are for parsing
+    const char hdr[2];
+    const char sep[2];
 
     // these are permanent static buffer
     str_t * qid;
