@@ -327,7 +327,7 @@ begin:
         goto begin;
     }
 
-    if (file == qual && seq.seq->length() != seq.quals->length())
+    if (seq.seq->length() != seq.quals->length())
         PARSE_ERROR(
             *pos,
             "malformed file: sequence length (%ld) does not match the number of quality scores (%ld)",
