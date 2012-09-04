@@ -159,6 +159,8 @@ void parser_t::init()
 
 // public parser methods
 
+const char chr[] = ">\0@\0+";
+
 parser_t::parser_t(const char * fastq_file):
     fasta(NULL),
     qual(NULL),
@@ -166,8 +168,8 @@ parser_t::parser_t(const char * fastq_file):
     qpos(pos_t(NULL)),
     fstate(UNKNOWN),
     qstate(UNKNOWN),
-    hdr("@"),
-    sep("+")
+    hdr(chr + 2),
+    sep(chr + 4)
 {
     fastq = fopen(fastq_file, "rb");
     if (!fastq)
@@ -185,8 +187,8 @@ parser_t::parser_t(const char * fasta_file, const char * qual_file):
     qpos(pos_t(qual_file)),
     fstate(UNKNOWN),
     qstate(UNKNOWN),
-    hdr(">"),
-    sep(">")
+    hdr(chr + 0),
+    sep(chr + 0)
 {
     fasta = fopen(fasta_file, "rb");
     if (!fasta)

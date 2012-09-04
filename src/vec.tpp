@@ -39,7 +39,7 @@ void vec_t<T>::init()
     capacity = DEFAULT_SZ;
 end:
     len = 0;
-    data[len] = NULL;
+    data[len] = T(NULL);
 }
 
 // public methods
@@ -65,7 +65,7 @@ void vec_t<T>::append(const T item)
     len += 1;
     if (len >= capacity)
         fprintf(stderr, "len >= capacity");
-    data[len] = NULL;
+    data[len] = T(NULL);
 }
 
 template<class T>
@@ -107,7 +107,7 @@ void vec_t<T>::extend(const T * vec, long nitem)
         __resize(len + nitem);
         memcpy(data + len, vec, sizeof(T) * nitem);
         len += nitem;
-        data[len] = NULL;
+        data[len] = T(NULL);
     }
 }
 

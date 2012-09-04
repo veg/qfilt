@@ -56,7 +56,7 @@ void fprint_vector_stats(FILE * file, vec_t<long> & vec, const char * hdr)
         median,
         var,
         sqrt(var),
-        max,
+        min,
         two5,
         ninetyseven5,
         max
