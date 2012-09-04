@@ -4,7 +4,7 @@
 
 class strtok_t {
   private:
-    char * str,
+    char * const str,
          * ptr;
 
   public:
