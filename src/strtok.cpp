@@ -6,7 +6,7 @@
 
 // strtok_t methods
 
-strtok_t::strtok_t(const char * s) : len(strlen(s))
+strtok_t::strtok_t(const char * s)
 {
     str = strdup(s);
     __check_ptr(str, __FILE__, __LINE__);

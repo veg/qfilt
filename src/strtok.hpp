@@ -6,7 +6,6 @@ class strtok_t {
   private:
     char * str,
          * ptr;
-    const long len;
 
   public:
     strtok_t(const char *);
