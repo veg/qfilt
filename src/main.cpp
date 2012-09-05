@@ -174,7 +174,7 @@ int main(int argc, const char * argv[])
 
             // print the fragment identifier
             if (nfragment > 0)
-                fprintf(output, " fragment=%ld\n", nfragment);
+                fprintf(output, " fragment=%ld\n", nfragment + 1);
             else {
                 fprintf(output, "\n");
                 // if it's the first fragment,
