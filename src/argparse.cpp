@@ -38,7 +38,8 @@ const char help_msg[] =
     "                           otherwise they are truncated;\n"
     "                           if the second bit is set, low q-score homopolymers are tolerated;\n"
     "                           and if the third bit is set, low q-score 'N's are tolerated\n"
-    "  -T PREFIX                if supplied, only reads with this PREFIX are retained\n"
+    "  -T PREFIX                if supplied, only reads with this PREFIX are retained,\n"
+    "                           and the PREFIX is stripped from each contributing read\n"
     "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
     "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n";
 
