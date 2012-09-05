@@ -3,7 +3,7 @@ qfilt
 
 This simple program is meant to filter sequencing data,
 optionally removing or splitting reads with poor quality scores
-and to optionally retain fragments from reads that are tagged with a given 5' sequence.
+and to optionally _only_ retain fragments from reads that are tagged with a given 5' sequence.
 
 BUILD & INSTALL
 ---------------
