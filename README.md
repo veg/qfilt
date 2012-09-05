@@ -85,7 +85,7 @@ ARGUMENTS
                   if the lowest bit is set, a low q-score causes reads to be split,
                   otherwise they are truncated;
                   if the second bit is set, low q-score homopolymers are tolerated;
-                  and if the third bit is set, low q-score 'N's are tolerated
+                  and if the highest bit is set, low q-score 'N's are tolerated
     
     -T PREFX    : if supplied, only reads with this PREFIX are retained,
                   and the PREFIX is stripped from each contributing read
