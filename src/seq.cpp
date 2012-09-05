@@ -1,4 +1,5 @@
 
+#include "common.hpp"
 #include "seq.hpp"
 #include "strtok.hpp"
 
@@ -6,17 +7,17 @@
 
 #define MALFUNCTION() \
 { \
-    fprintf(stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", __FILE__, __LINE__); \
-    exit(1); \
+    fprintf( stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", basename( __FILE__ ), __LINE__ ); \
+    exit( 1 ); \
 }
 
-#define PARSE_ERROR(pos, msg, args...) \
+#define PARSE_ERROR( pos, msg, args... ) \
 { \
     const char * file; \
     long line, col; \
-    (pos).get(file, line, col); \
-    fprintf(stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args); \
-    exit(1); \
+    (pos).get( file, line, col ); \
+    fprintf( stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args ); \
+    exit( 1 ); \
 }
 
 // pos_t methods

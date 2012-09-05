@@ -49,10 +49,10 @@ void help()
     exit( 1 );
 }
 
-#define ERROR(msg, args...) \
+#define ERROR( msg, args... ) \
 { \
-    fprintf(stderr, "%s" QFILT ": error: " msg "\n", usage , ##args); \
-    exit(1); \
+    fprintf( stderr, "%s" QFILT ": error: " msg "\n", usage , ##args ); \
+    exit( 1 ); \
 }
 
 args_t::args_t( int argc, const char * argv[] ) :

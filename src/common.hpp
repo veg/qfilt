@@ -27,11 +27,11 @@ const char * basename( const char * path )
     return path;
 }
 
-#define __CHECK_PTR(ptr) \
+#define __CHECK_PTR( ptr ) \
 { \
-    if (!ptr) { \
-        fprintf(stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename(__FILE__), __LINE__); \
-        exit(1); \
+    if ( !ptr ) { \
+        fprintf( stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename( __FILE__ ), __LINE__ ); \
+        exit( 1 ); \
     } \
 }
 
