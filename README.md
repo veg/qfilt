@@ -87,7 +87,7 @@ ARGUMENTS
                   if the second bit is set, low q-score homopolymers are tolerated;
                   and if the highest bit is set, low q-score 'N's are tolerated
     
-    -T PREFX    : if supplied, only reads with this PREFIX are retained,
+    -T PREFIX   : if supplied, only reads with this PREFIX are retained,
                   and the PREFIX is stripped from each contributing read
     
     -t MISMATCH : if PREFIX is supplied, prefix matching tolerates at most
