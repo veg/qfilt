@@ -136,7 +136,7 @@ long vec_t<T>::length() const
 template<class T>
 void vec_t<T>::sort()
 {
-    qsort(data, len, sizeof(T), __elem_cmp); 
+    qsort(data, len, sizeof(T), __elem_cmp<T>); 
 }
 
 template<class T>
