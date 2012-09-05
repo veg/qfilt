@@ -75,6 +75,13 @@ int main(int argc, const char * argv[])
 
     long ncontrib = 0;
 
+    FILE * output = args.output ? fopen(args.output, "wb") : stdout;
+
+    if (!output) {
+        fprintf(stderr, "\nERROR: failed to open OUTPUT file %s\n", args.output);
+        exit(1);
+    }
+
     /*
     for (int i = 0; i < 256; ++i)
         char_lookup[i] = -1;
@@ -163,13 +170,13 @@ int main(int argc, const char * argv[])
                 continue;
 
             // print the read ID
-            fprintf(stdout, ">%s", seq.id->c_str());
+            fprintf(output, ">%s", seq.id->c_str());
 
             // print the fragment identifier
             if (nfragment > 0)
-                fprintf(stdout, " fragment=%ld\n", nfragment);
+                fprintf(output, " fragment=%ld\n", nfragment);
             else {
-                fprintf(stdout, "\n");
+                fprintf(output, "\n");
                 // if it's the first fragment,
                 // count the contributing read
                 ncontrib += 1;
@@ -181,18 +188,18 @@ int main(int argc, const char * argv[])
                 const int nitem = (to - i < 60) ? to - i : 60;
                 strncpy(buf, seq.seq->c_str() + i, nitem);
                 buf[nitem] = '\0';
-                fprintf(stdout, "%s\n", buf);
+                fprintf(output, "%s\n", buf);
             }
 #if 0
             // for printing quality scores
-            fprintf(stdout, "+\n");
+            fprintf(output, "+\n");
             for (i = from; i < to; ++i) {
                 char s[] = " ";
                 if (i == from)
                     s[0] = '\0';
-                fprintf(stdout, "%s%ld", s, (*seq.quals)[i]);
+                fprintf(output, "%s%ld", s, (*seq.quals)[i]);
             }
-            fprintf(stdout, "\n");
+            fprintf(output, "\n");
 #endif
             fragment_lengths.append(to - from - nambigs);
 
@@ -249,6 +256,9 @@ int main(int argc, const char * argv[])
 
     fprint_vector_stats(stderr, read_lengths, "\noriginal read length distribution:");
     fprint_vector_stats(stderr, fragment_lengths, "\nretained fragment length distribution:");
+
+    if (output && output != stdout)
+        fclose(output);
 
     return 0;
 }

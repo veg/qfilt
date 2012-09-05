@@ -13,6 +13,7 @@
 
 const char usage[] =
     "usage: " QFILT " [-h] "
+    "[-o OUTPUT] "
     "[-q QSCORE] "
     "[-l LENGTH] "
     "[-m MODE] "
@@ -29,6 +30,7 @@ const char help_msg[] =
     "\n"
     "optional arguments:\n"
     "  -h, --help               show this help message and exit\n"
+    "  -o OUTPUT                direct retained fragments to a file named OUTPUT (default=stdout)\n"
     "  -q QSCORE                minimum quality score (default=" TO_STR(DEFAULT_MIN_QSCORE) ")\n"
     "  -l LENGTH                minimum retained fragment LENGTH (default=" TO_STR(DEFAULT_MIN_LENGTH) ")\n"
     "  -m MODE                  MODE is a 3-bitmask (an integer in [0-7], default=" TO_STR(DEFAULT_MODE) "):\n"
@@ -57,6 +59,7 @@ args_t::args_t(int argc, const char * argv[]) :
     fastq(NULL),
     fasta(NULL),
     qual(NULL),
+    output(NULL),
     min_length(DEFAULT_MIN_LENGTH),
     min_qscore(DEFAULT_MIN_QSCORE),
     tag_length(0),
@@ -92,6 +95,7 @@ args_t::args_t(int argc, const char * argv[]) :
         else if (arg[0] == '-') {
                  if (!strcmp(&arg[1], "F")) parse_fastq(argv[++i]);
             else if (!strcmp(&arg[1], "Q")) { parse_qual(argv[i+1], argv[i+2]); i += 2; }
+            else if (!strcmp(&arg[1], "o")) parse_output(argv[++i]);
             else if (!strcmp(&arg[1], "l")) parse_minlength(argv[++i]);
             else if (!strcmp(&arg[1], "q")) parse_minqscore(argv[++i]);
             else if (!strcmp(&arg[1], "m")) parse_mode(argv[++i]);
@@ -124,6 +128,11 @@ void args_t::parse_fastq(const char * str)
         ERROR("-F and -Q are mutually exclusive");
 
     fastq = str;
+}
+
+void args_t::parse_output(const char * str)
+{
+    output = str;
 }
 
 void args_t::parse_minlength(const char * str)

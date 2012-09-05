@@ -88,17 +88,17 @@ class seq_t {
 class parser_t
 {
   private:
-    FILE * fasta,
-         * fastq,
-         * qual;
-    pos_t fpos,
-          qpos;
-    state_t fstate,
-            qstate;
+    FILE * fasta;
+    FILE * fastq;
+    FILE * qual;
+    pos_t fpos;
+    pos_t qpos;
+    state_t fstate;
+    state_t qstate;
 
     // these are for parsing
-    const char * const hdr,
-               * const sep;
+    const char * const hdr;
+    const char * const sep;
 
     // these are permanent static buffer
     str_t * qid;

@@ -16,6 +16,7 @@ class args_t {
     const char * fastq;
     const char * fasta;
     const char * qual;
+    const char * output;
     long min_length;
     long min_qscore;
     bool split; // split not truncate
@@ -29,6 +30,7 @@ class args_t {
   private:
     void parse_fastq(const char *);
     void parse_qual(const char *, const char *);
+    void parse_output(const char *);
     void parse_minlength(const char *);
     void parse_minqscore(const char *);
     void parse_mode(const char *);
