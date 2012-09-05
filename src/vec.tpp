@@ -140,7 +140,7 @@ void vec_t<T>::sort()
 }
 
 template<class T>
-T vec_t<T>::operator[](long i) const
+T vec_t<T>::operator[](const long i) const
 {
     return data[i];
 }

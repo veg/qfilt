@@ -43,7 +43,7 @@ class vec_t {
     void extend(vec_t<T> &, long, long);
     void extend(vec_t<T> &);
     void sort();
-    T operator[](long i) const;
+    T operator[](const long i) const;
 };
 
 #include "vec.tpp"
