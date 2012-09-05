@@ -6,38 +6,38 @@
 
 // strtok_t methods
 
-strtok_t::strtok_t(const char * s) : str(strdup(s))
+strtok_t::strtok_t( const char * s ) : str( strdup( s ) )
 {
-    __CHECK_PTR(str)
+    __CHECK_PTR( str )
     ptr = str;
 }
 
 strtok_t::~strtok_t()
 {
-    if (str)
-        free(str);
+    if ( str )
+        free( str );
 }
 
-char * strtok_t::next(const char * delim)
+char * strtok_t::next( const char * delim )
 {
-    char * pch = strpbrk(ptr, delim);
+    char * pch = strpbrk( ptr, delim );
 
     // skip leading delims
-    while (pch && ptr == pch) {
+    while ( pch && ptr == pch ) {
         ptr = pch + 1;
-        pch = strpbrk(ptr, delim);
+        pch = strpbrk( ptr, delim );
     }
-    
+
     // if we advanced more than 1,
     // and aren't NULL, then set the null byte
     // advance the ptr to just after the null byte,
     // and return
-    if (pch) {
+    if ( pch ) {
         char * tmp = ptr;
         pch[0] = '\0';
         ptr = pch + 1;
         return tmp;
     }
-        
+
     return NULL;
 }

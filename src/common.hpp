@@ -7,20 +7,21 @@
 #include <cstring>
 
 inline
-const char * basename(const char * path)
+const char * basename( const char * path )
 {
     long i;
-    
-    if (!path)
+
+    if ( !path )
         return NULL;
 
-    for (i = strlen(path) - 1; i >= 0; --i) {
+    for ( i = strlen( path ) - 1; i >= 0; --i ) {
 #ifdef _WIN32
-        if (path[i] == '\\')
+
+        if ( path[i] == '\\' )
 #else
-        if (path[i] == '/')
+        if ( path[i] == '/' )
 #endif
-            return path + i + 1; 
+            return path + i + 1;
     }
 
     return path;
