@@ -244,112 +244,112 @@ begin:
 
     do {
         switch ( *state ) {
-            case UNKNOWN: {
-                skip_ws( file, *pos );
-                {
-                    const char c = fgetc( file );
-                    pos->next_col();
+        case UNKNOWN: {
+            skip_ws( file, *pos );
+            {
+                const char c = fgetc( file );
+                pos->next_col();
 
-                    if ( strchr( hdr, c ) )
-                        *state = ID;
-                    else if ( c == EOF )
-                        return false;
-                    else
-                        PARSE_ERROR( *pos, "malformed file: %c", c )
-                        break;
-                }
+                if ( strchr( hdr, c ) )
+                    *state = ID;
+                else if ( c == EOF )
+                    return false;
+                else
+                    PARSE_ERROR( *pos, "malformed file: %c", c )
+                    break;
             }
+        }
 
-            case ID: {
-                str_t * str = ( filetype == QUAL ) ? qid : seq.id;
-                int nelem = extend_until( *str, "\n", file, *pos );
+        case ID: {
+            str_t * str = ( filetype == QUAL ) ? qid : seq.id;
+            int nelem = extend_until( *str, "\n", file, *pos );
+
+            if ( nelem < 1 )
+                PARSE_ERROR( *pos, "malformed file: missing ID" )
+                if ( filetype == QUAL ) {
+                    qid->clear();
+                    *state = QUALITY;
+                }
+                else
+                    *state = SEQUENCE;
+
+            break;
+        }
+
+        case SEQUENCE: {
+            switch ( filetype ) {
+            case FASTA:
+            case FASTQ: {
+                int nelem;
+                nelem = extend_until( *seq.seq, sep, file, *pos );
 
                 if ( nelem < 1 )
-                    PARSE_ERROR( *pos, "malformed file: missing ID" )
-                    if ( filetype == QUAL ) {
-                        qid->clear();
-                        *state = QUALITY;
-                    }
-                    else
-                        *state = SEQUENCE;
+                    PARSE_ERROR( *pos, "malformed file: missing sequence" )
+                    if ( filetype == FASTA ) {
+                        if ( !feof( file ) ) {
+                            const int err = fseek( file, -1, SEEK_CUR );
 
-                break;
-            }
+                            if ( err )
+                                MALFUNCTION()
+                                pos->prev_col();
+                        }
 
-            case SEQUENCE: {
-                switch ( filetype ) {
-                    case FASTA:
-                    case FASTQ: {
-                        int nelem;
-                        nelem = extend_until( *seq.seq, sep, file, *pos );
-
-                        if ( nelem < 1 )
-                            PARSE_ERROR( *pos, "malformed file: missing sequence" )
-                            if ( filetype == FASTA ) {
-                                if ( !feof( file ) ) {
-                                    const int err = fseek( file, -1, SEEK_CUR );
-
-                                    if ( err )
-                                        MALFUNCTION()
-                                        pos->prev_col();
-                                }
-
-                                *state = UNKNOWN;
-                            }
-                            else { // FASTQ
-                                // skip the whitespace after the + separator
-                                skip_ws( file, *pos );
-                                *state = QUALITY;
-                            }
-
-                        break;
-                    }
-
-                    default:
-                        MALFUNCTION()
-                }
-
-                break;
-            }
-
-            case QUALITY: {
-                // FASTQ files permit '@' to appear as a valid quality value (31),
-                // so look for a newline instead of the hdr
-                int nelem = extend_until( *qs, ( filetype == QUAL ) ? hdr : "\n", file, *pos, false );
-
-                if ( nelem < 1 )
-                    PARSE_ERROR( *pos, "malformed file: missing quality scores" )
-                    if ( filetype == QUAL ) {
-                        char * buf = NULL;
-                        strtok_t tok( qs->c_str() );
-
-                        while ( ( buf = tok.next( " \t\n" ) ) )
-                            seq.quals->append( atoi( buf ) );
+                        *state = UNKNOWN;
                     }
                     else { // FASTQ
-                        int i;
-
-                        for ( i = 0; i < qs->length(); ++i ) {
-                            // encoding: chr(phred+33)
-                            seq.quals->append( long( ( *qs )[i] ) - 33 );
-                        }
+                        // skip the whitespace after the + separator
+                        skip_ws( file, *pos );
+                        *state = QUALITY;
                     }
 
-                // clear the qual data after use
-                qs->clear();
-
-                // reset the state to UNKNOWN and just prior to the header
-                if ( filetype == QUAL && !feof( file ) ) {
-                    fseek( file, -1, SEEK_CUR );
-                    pos->prev_col();
-                }
-
-                *state = UNKNOWN;
                 break;
             }
 
             default:
                 MALFUNCTION()
+            }
+
+            break;
+        }
+
+        case QUALITY: {
+            // FASTQ files permit '@' to appear as a valid quality value (31),
+            // so look for a newline instead of the hdr
+            int nelem = extend_until( *qs, ( filetype == QUAL ) ? hdr : "\n", file, *pos, false );
+
+            if ( nelem < 1 )
+                PARSE_ERROR( *pos, "malformed file: missing quality scores" )
+                if ( filetype == QUAL ) {
+                    char * buf = NULL;
+                    strtok_t tok( qs->c_str() );
+
+                    while ( ( buf = tok.next( " \t\n" ) ) )
+                        seq.quals->append( atoi( buf ) );
+                }
+                else { // FASTQ
+                    int i;
+
+                    for ( i = 0; i < qs->length(); ++i ) {
+                        // encoding: chr(phred+33)
+                        seq.quals->append( long( ( *qs )[i] ) - 33 );
+                    }
+                }
+
+            // clear the qual data after use
+            qs->clear();
+
+            // reset the state to UNKNOWN and just prior to the header
+            if ( filetype == QUAL && !feof( file ) ) {
+                fseek( file, -1, SEEK_CUR );
+                pos->prev_col();
+            }
+
+            *state = UNKNOWN;
+            break;
+        }
+
+        default:
+            MALFUNCTION()
         }
     }
     while ( *state != UNKNOWN );

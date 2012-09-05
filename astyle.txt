@@ -5,7 +5,7 @@
 
 --indent=spaces=4
 
---indent-switches
+# --indent-switches
 
 --indent-namespaces
 
