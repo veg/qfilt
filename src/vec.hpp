@@ -13,10 +13,12 @@ int __elem_cmp(const void * a, const void * b)
 {
     const T * c = reinterpret_cast<const T *>(a);
     const T * d = reinterpret_cast<const T *>(b);
+
     if (*c < *d)
         return -1;
     else if (*c > *d)
         return 1;
+    
     return 0;
 }
 
