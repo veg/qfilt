@@ -22,9 +22,9 @@ To try it using the example data provided:
 
     qfilt -Q data/test.fna data/test.qual -q 15 -l 30 -T ATATCGCGAGGA
 
-### output ####
+### OUTPUT: ####
 
-#### stderr ####
+#### stderr: ####
 
     run settings:
         input fasta:         data/test.fna
@@ -60,7 +60,7 @@ To try it using the example data provided:
         97.5%:               54
         max:                 54
  
-#### stdout ####
+#### stdout: ####
 
     >GM98SRO01B77KU rank=0000671 x=796.0 y=1996.0 length=58
     CCACGCGTATCGATGTCGACTTTTTTTTCTTTTCTTACATAGTAG
