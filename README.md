@@ -76,8 +76,8 @@ To try it using the example data provided:
 ARGUMENTS
 ---------
 
-    -q QSCORE   : minimum per-base quality score below which a read
-                  will be truncated or (default=20)
+    -q QSCORE   : minimum per-base quality score below which a read will be split
+                  or truncated (default=20)
     
     -l LENGTH   : minimum retained fragment LENGTH (default=50)
     
