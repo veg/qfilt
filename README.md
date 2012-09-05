@@ -10,10 +10,8 @@ BUILD & INSTALL
 
 To build, you will need CMake. Type
 
-```bash
-cmake [-DINSTALL_PREFIX=/install/path (default=/usr/local)] .
-make instal
-```
+    cmake [-DINSTALL_PREFIX=/install/path (default=/usr/local)] .
+    make install
 
 USAGE
 -----
@@ -78,19 +76,19 @@ To try it using the example data provided:
 ARGUMENTS
 ---------
 
--q QSCORE   : minimum per-base quality score below which a read
-              will be truncated or (default=20)
-
--l LENGTH   : minimum retained fragment LENGTH (default=50)
-
--m MODE     : MODE is a 3-bitmask (an integer in [0-7], default=0):
-              if the lowest bit is set, a low q-score causes reads to be split,
-              otherwise they are truncated;
-              if the second bit is set, low q-score homopolymers are tolerated;
-              and if the third bit is set, low q-score 'N's are tolerated
-
--T PREFX    : if supplied, only reads with this PREFIX are retained,
-              and the PREFIX is stripped from each contributing read
-
--t MISMATCH : if PREFIX is supplied, prefix matching tolerates at most
-              MISMATCH mismatches (default=0)
+    -q QSCORE   : minimum per-base quality score below which a read
+                  will be truncated or (default=20)
+    
+    -l LENGTH   : minimum retained fragment LENGTH (default=50)
+    
+    -m MODE     : MODE is a 3-bitmask (an integer in [0-7], default=0):
+                  if the lowest bit is set, a low q-score causes reads to be split,
+                  otherwise they are truncated;
+                  if the second bit is set, low q-score homopolymers are tolerated;
+                  and if the third bit is set, low q-score 'N's are tolerated
+    
+    -T PREFX    : if supplied, only reads with this PREFIX are retained,
+                  and the PREFIX is stripped from each contributing read
+    
+    -t MISMATCH : if PREFIX is supplied, prefix matching tolerates at most
+                  MISMATCH mismatches (default=0)
