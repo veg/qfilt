@@ -8,7 +8,7 @@ and to optionally _only_ retain fragments from reads that are tagged with a give
 BUILD & INSTALL
 ---------------
 
-To build, you will need CMake. Type
+The build process requires [CMake](http://www.cmake.org/). To build, type:
 
     cmake [-DINSTALL_PREFIX=/install/path (default=/usr/local)] .
     make install
