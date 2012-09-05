@@ -34,8 +34,16 @@ install(
 	OPTIONAL
 )
 
-add_custom_target(
-    style
-    COMMAND astyle --options=astyle.txt --suffix=none --recursive 'src/*.cpp' 'src/*.hpp' 'src/*.tpp'
-    DEPENDS astyle.txt
+find_program(
+    ASTYLE
+    astyle
+    PATHS ENV PATH
 )
+
+if(ASTYLE)
+    add_custom_target(
+        style
+        COMMAND ${ASTYLE} --options=astyle.txt --suffix=none --recursive 'src/*.cpp' 'src/*.hpp' 'src/*.tpp'
+        DEPENDS astyle.txt
+    )
+endif(ASTYLE)
