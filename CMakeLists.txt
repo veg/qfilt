@@ -33,3 +33,9 @@ install(
 	RUNTIME DESTINATION bin
 	OPTIONAL
 )
+
+add_custom_target(
+    style
+    COMMAND astyle --options=astyle.txt --suffix=none --recursive 'src/*.cpp' 'src/*.hpp' 'src/*.tpp'
+    DEPENDS astyle.txt
+)

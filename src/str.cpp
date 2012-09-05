@@ -17,7 +17,7 @@ const char * str_t::c_str() const
 
 void str_t::extend( const char * str )
 {
-    extend( str, long ( strlen( str ) ) );
+    extend( str, long( strlen( str ) ) );
 }
 
 void str_t::lower()
