@@ -25,7 +25,8 @@ class vec_t {
 
   protected:
     T * data;
-    long len, capacity;
+    long len;
+    long capacity;
   
     void init();
 
