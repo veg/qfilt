@@ -1,6 +1,8 @@
 
 #include <cctype>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "argparse.hpp"
 #include "seq.hpp"
@@ -75,7 +77,10 @@ int main(int argc, const char * argv[])
 
     long ncontrib = 0;
 
-    FILE * output = args.output ? fopen(args.output, "wb") : stdout;
+    // if -o is unsupplied or -o - is supplied, use stdout
+    FILE * output = (args.output && strcmp(args.output, "-"))
+        ? fopen(args.output, "wb")
+        : stdout;
 
     if (!output) {
         fprintf(stderr, "\nERROR: failed to open OUTPUT file %s\n", args.output);

@@ -53,7 +53,7 @@ vec_t<T>::vec_t() : data(NULL)
 template<class T>
 vec_t<T>::~vec_t()
 {
-    if (data != NULL)
+    if (data)
         free(data);
 }
 

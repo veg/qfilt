@@ -11,7 +11,7 @@ const char * basename(const char * path)
 {
     long i;
     
-    if (path == NULL)
+    if (!path)
         return NULL;
 
     for (i = strlen(path) - 1; i >= 0; --i) {
@@ -28,7 +28,7 @@ const char * basename(const char * path)
 
 #define __CHECK_PTR(ptr) \
 { \
-    if (ptr == NULL) { \
+    if (!ptr) { \
         fprintf(stderr, "\nERROR (file: %s, line: %d): memory allocation failure\n", basename(__FILE__), __LINE__); \
         exit(1); \
     } \
