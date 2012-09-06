@@ -214,8 +214,6 @@ int main( int argc, const char * argv[] )
         }
     }
 
-    read_lengths.sort();
-    fragment_lengths.sort();
     fprintf( stderr, "run settings:\n" );
 
     if ( args.fasta )
@@ -261,6 +259,9 @@ int main( int argc, const char * argv[] )
              ncontrib,
              fragment_lengths.length()
            );
+    // print original read length and retained fragment length statistics
+    read_lengths.sort();
+    fragment_lengths.sort();
     fprint_vector_stats( stderr, read_lengths, "\noriginal read length distribution:" );
     fprint_vector_stats( stderr, fragment_lengths, "\nretained fragment length distribution:" );
 
