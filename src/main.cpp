@@ -64,7 +64,7 @@ void fprint_vector_stats( FILE * file, vec_t<long> & vec, const char * hdr )
            );
 }
 
-/* main ------------------------------------------------------------------------------------------------------------- */
+// main ------------------------------------------------------------------------------------------------------------- //
 
 int main( int argc, const char * argv[] )
 {
@@ -82,13 +82,15 @@ int main( int argc, const char * argv[] )
         exit( 1 );
     }
 
-    /*
-    for (int i = 0; i < 256; ++i)
+#if 0
+
+    for ( int i = 0; i < 256; ++i )
         char_lookup[i] = -1;
 
-    for (int i = 0; i < valid_char_count; ++i)
+    for ( int i = 0; i < valid_char_count; ++i )
         char_lookup[valid_chars[i]] = i;
-    */
+
+#endif
     vec_t<long> read_lengths = vec_t<long>();
     vec_t<long> fragment_lengths = vec_t<long>();
 

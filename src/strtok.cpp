@@ -4,7 +4,7 @@
 #include "common.hpp"
 #include "strtok.hpp"
 
-// strtok_t methods
+// strtok_t --------------------------------------------------------------------------------------------------------- //
 
 strtok_t::strtok_t( const char * s ) : str( strdup( s ) )
 {

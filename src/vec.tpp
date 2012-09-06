@@ -1,7 +1,7 @@
 
 #define DEFAULT_SZ 1024L
 
-// private methods
+// vec_t ------------------------------------------------------------------------------------------------------------ //
 
 template<class T>
 inline
@@ -19,8 +19,6 @@ void vec_t<T>::__resize( long rlen )
         capacity = rcap;
     }
 }
-
-// protected methods
 
 template<class T>
 void vec_t<T>::init()
@@ -41,8 +39,6 @@ end:
     len = 0;
     data[len] = T( NULL );
 }
-
-// public methods
 
 template<class T>
 vec_t<T>::vec_t() : data( NULL )

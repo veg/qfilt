@@ -20,7 +20,7 @@
     exit( 1 ); \
 }
 
-// pos_t methods
+// pos_t ------------------------------------------------------------------------------------------------------------ //
 
 pos_t::pos_t( const char * file ) : file( file ), line( 1 ), col( 1 )
 {
@@ -39,7 +39,7 @@ void pos_t::get( const char *& f, long & l, long & c ) const
     c = col;
 }
 
-// seq_t methods
+// seq_t ------------------------------------------------------------------------------------------------------------ //
 
 seq_t::seq_t() : length( 0 )
 {
@@ -63,7 +63,7 @@ void seq_t::clear()
     length = 0;
 }
 
-// helper functions for parser_t
+// parser_t helper functions ---------------------------------------------------------------------------------------- //
 
 inline
 void skip_ws( FILE * file, pos_t & pos )
@@ -151,17 +151,13 @@ int extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos )
     return extend_until( str, delim, file, pos, true );
 }
 
-// parser methods
-
-// protected parser methods
+// parser_t --------------------------------------------------------------------------------------------------------- //
 
 void parser_t::init()
 {
     qid = new str_t();
     qs = new str_t();
 }
-
-// public parser methods
 
 const char chr[] = ">\0@\0+";
 
