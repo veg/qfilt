@@ -14,8 +14,7 @@ strtok_t::strtok_t( const char * s ) : str( strdup( s ) )
 
 strtok_t::~strtok_t()
 {
-    if ( str )
-        free( str );
+    free( str );
 }
 
 char * strtok_t::next( const char * delim )

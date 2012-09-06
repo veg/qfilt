@@ -50,14 +50,9 @@ seq_t::seq_t() : length( 0 )
 
 seq_t::~seq_t()
 {
-    if ( id )
-        delete id;
-
-    if ( seq )
-        delete seq;
-
-    if ( quals )
-        delete quals;
+    delete id;
+    delete seq;
+    delete quals;
 }
 
 void seq_t::clear()
@@ -227,11 +222,8 @@ parser_t::~parser_t()
     if ( qual )
         fclose( qual );
 
-    if ( qid )
-        delete qid;
-
-    if ( qs )
-        delete qs;
+    delete qid;
+    delete qs;
 }
 
 bool parser_t::next( seq_t & seq )
