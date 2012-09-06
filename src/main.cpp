@@ -231,7 +231,8 @@ int main( int argc, const char * argv[] )
                  args.fastq
                );
 
-    fprintf( stderr, "    min q-score:         %ld\n"
+    fprintf( stderr,
+             "    min q-score:         %ld\n"
              "    min fragment length: %ld\n"
              "    run mode:            %d (%s/%s/%s)\n",
              args.min_qscore,
@@ -250,7 +251,9 @@ int main( int argc, const char * argv[] )
                  args.tag_mismatch
                );
 
-    fprintf( stderr, "\nrun summary:\n"
+    fprintf( stderr,
+             "\n"
+             "run summary:\n"
              "    original reads:      %ld\n"
              "    contributing reads:  %ld\n"
              "    retained fragments:  %ld\n",
