@@ -7,6 +7,8 @@
 
 str_t::str_t() {}
 
+str_t::~str_t() {}
+
 str_t::str_t( const char * str )
 {
     extend( str );
