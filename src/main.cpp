@@ -69,7 +69,7 @@ void fprint_vector_stats( FILE * file, vec_t<long> & vec, const char * hdr )
 int main( int argc, const char * argv[] )
 {
     args_t args = args_t( argc, argv );
-    parser_t parser = ( args.fastq ) ? parser_t( args.fastq ) : parser_t( args.fasta, args.qual );
+    parser_t * parser = NULL;
     seq_t seq = seq_t();
     long ncontrib = 0;
     // if -o is unsupplied or -o - is supplied, use stdout
@@ -79,6 +79,17 @@ int main( int argc, const char * argv[] )
 
     if ( !output ) {
         fprintf( stderr, "\nERROR: failed to open OUTPUT file %s\n", args.output );
+        exit( 1 );
+    }
+
+    // initialize the parser
+    if ( args.fastq )
+        parser = new parser_t( args.fastq );
+    else
+        parser = new parser_t( args.fasta, args.qual );
+
+    if ( !parser ) {
+        fprintf( stderr, "\nERROR: failed to initialize parser\n" );
         exit( 1 );
     }
 
@@ -94,7 +105,7 @@ int main( int argc, const char * argv[] )
     vec_t<long> read_lengths = vec_t<long>();
     vec_t<long> fragment_lengths = vec_t<long>();
 
-    for ( ; parser.next( seq ); seq.clear() ) {
+    for ( ; parser->next( seq ); seq.clear() ) {
         // maxto is the maximum value of "to",
         // NOT THE UPPER BOUND
         const long maxto = seq.length - args.min_length;
@@ -266,6 +277,8 @@ int main( int argc, const char * argv[] )
     fragment_lengths.sort();
     fprint_vector_stats( stderr, read_lengths, "\noriginal read length distribution:" );
     fprint_vector_stats( stderr, fragment_lengths, "\nretained fragment length distribution:" );
+
+    delete parser;
 
     if ( output && output != stdout )
         fclose( output );
