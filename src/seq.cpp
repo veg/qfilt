@@ -79,7 +79,7 @@ void skip_ws( FILE * file, pos_t & pos )
             // otherwise increment column
             if ( pch[0] == '\n' )
                 pos.next_line();
-            else
+            else if ( pch[0] != '\r' )
                 pos.next_col();
 
             // advance to next position
@@ -114,7 +114,7 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
                 pos.next_col( nchar - 1 );
                 pos.next_line();
             }
-            else
+            else if ( pch[0] != '\r' )
                 pos.next_col( nchar );
 
             // the +1 positions us just after the delim
@@ -129,7 +129,8 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
             long nchar = 1;
             if ( buf[len - 2] == '\r' )
                 nchar += 1;
-            truncate = nchar;
+            if ( trim )
+                truncate = nchar;
             pos.next_col( len - nchar );
             pos.next_line();
         }
@@ -137,9 +138,6 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
             pos.next_col( len - 1 );
         else
             pos.next_col( len );
-
-        if ( !trim )
-            truncate = 0;
 
         // extend the string by the appropriate number of chars
         str.extend( buf, len - truncate );
