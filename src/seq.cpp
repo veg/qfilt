@@ -11,12 +11,12 @@
     exit( 1 ); \
 }
 
-#define PARSE_ERROR( pos, msg, args... ) \
+#define PARSE_ERROR( pos, msg, ... ) \
 { \
     const char * file; \
     long line, col; \
     (pos).get( file, line, col ); \
-    fprintf( stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ##args ); \
+    fprintf( stderr, "\nERROR (file: %s, line: %ld, column: %ld): " msg "\n", file, line, col , ## __VA_ARGS__ ); \
     exit( 1 ); \
 }
 
