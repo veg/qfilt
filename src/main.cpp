@@ -182,7 +182,7 @@ int main( int argc, const char * argv[] )
                 continue;
 
             // print the read ID
-            fprintf( output, "%c%s", args.fastq_out ? '@' : '>', seq.id->c_str() );
+            fprintf( output, "%c%s", ( args.format == FASTQ ) ? '@' : '>', seq.id->c_str() );
 
             // print the fragment identifier
             if ( nfragment > 0 )
@@ -201,10 +201,10 @@ int main( int argc, const char * argv[] )
                 const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                 strncpy( buf, seq.seq->c_str() + i, nitem );
                 buf[nitem] = '\0';
-                fprintf( output, args.fastq_out ? "%s" : "%s\n", buf );
+                fprintf( output, ( args.format == FASTQ ) ? "%s" : "%s\n", buf );
             }
 
-            if ( args.fastq_out ) {
+            if ( args.format == FASTQ ) {
                 fprintf( output, "\n+\n" );
                 for ( i = from; i < to; i += BUF_LEN ) {
                     char buf[BUF_LEN + 1];

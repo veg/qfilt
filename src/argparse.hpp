@@ -2,6 +2,8 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
 
+#include "seq.hpp"
+
 // program name
 #define QFILT "qfilt"
 
@@ -10,7 +12,7 @@
 #define DEFAULT_MIN_QSCORE 20
 #define DEFAULT_MODE 0
 #define DEFAULT_TAG_MISMATCH 0
-#define DEFAULT_FASTQ_OUT false
+#define DEFAULT_FORMAT FASTA
 
 class args_t
 {
@@ -27,7 +29,7 @@ public:
     char tag[256];
     long tag_length;
     long tag_mismatch;
-    bool fastq_out; // output FASTQ
+    filetype_t format;
 
     args_t( int, const char ** );
 private:
@@ -42,7 +44,7 @@ private:
     void parse_ambig();
     void parse_tag( const char * );
     void parse_tagmismatch( const char * );
-    void parse_fastqout();
+    void parse_format( const char * );
 };
 
 #endif // ARGPARSE_H

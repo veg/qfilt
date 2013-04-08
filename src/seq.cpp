@@ -203,12 +203,16 @@ parser_t::parser_t( const char * fasta_file, const char * qual_file ):
         exit( 1 );
     }
 
-    qual = fopen( qual_file, "rb" );
-
-    if ( !qual ) {
-        fprintf( stderr, "\nERROR: failed to open the QUAL file %s\n", qual_file );
-        exit( 1 );
+    if ( qual_file ) {
+        qual = fopen( qual_file, "rb" );
+    
+        if ( !qual ) {
+            fprintf( stderr, "\nERROR: failed to open the QUAL file %s\n", qual_file );
+            exit( 1 );
+        }
     }
+    else
+        qual = NULL;
 
     init();
 }
@@ -250,7 +254,8 @@ begin:
                     return false;
                 else
                     PARSE_ERROR( *pos, "malformed file: %c", c )
-                    break;
+                
+                break;
             }
         }
 

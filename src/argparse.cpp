@@ -16,18 +16,18 @@ const char usage[] =
     "[-o OUTPUT] "
     "[-q QSCORE] "
     "[-l LENGTH] "
-    "[-m MODE] [-s] [-p] [-a]"
+    "[-m MODE] [-s] [-p] [-a] "
     "[-T PREFIX] "
     "[-t MISMATCH] "
     "[-f] "
-    "( -F FASTQ | -Q FASTA QUAL )\n";
+    "( -F FASTA QUAL | -Q FASTQ )\n";
 
 const char help_msg[] =
     "filter sequencing data using some simple heuristics\n"
     "\n"
     "required arguments:\n"
-    "  -F FASTQ                 FASTQ file\n"
-    "  -Q FASTA QUAL            FASTA and QUAL files\n"
+    "  -F FASTA QUAL            FASTA and QUAL files\n"
+    "  -Q FASTQ                 FASTQ file\n"
     "\n"
     "optional arguments:\n"
     "  -h, --help               show this help message and exit\n"
@@ -46,7 +46,7 @@ const char help_msg[] =
     "                           and the PREFIX is stripped from each contributing read\n"
     "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
     "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n"
-    "  -f                       output FASTQ format\n";
+    "  -f FORMAT                output in FASTA or FASTQ format (default=" TO_STR( DEFAULT_FORMAT ) ")\n";
 
 inline
 void help()
@@ -72,7 +72,7 @@ args_t::args_t( int argc, const char * argv[] ) :
     min_qscore( DEFAULT_MIN_QSCORE ),
     tag_length( 0 ),
     tag_mismatch( DEFAULT_TAG_MISMATCH ),
-    fastq_out( DEFAULT_FASTQ_OUT )
+    format( DEFAULT_FORMAT )
 {
     int i;
     // make sure tag is an empty string
@@ -106,8 +106,8 @@ args_t::args_t( int argc, const char * argv[] ) :
                 ERROR( "unknown argument: %s", arg );
         }
         else if ( arg[0] == '-' ) {
-            if ( !strcmp( &arg[1], "F" ) ) parse_fastq( argv[++i] );
-            else if ( !strcmp( &arg[1], "Q" ) ) {
+            if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( argv[++i] );
+            else if ( !strcmp( &arg[1], "F" ) ) {
                 parse_qual( argv[i + 1], argv[i + 2] );
                 i += 2;
             }
@@ -120,7 +120,7 @@ args_t::args_t( int argc, const char * argv[] ) :
             else if ( !strcmp( &arg[1], "a" ) ) parse_ambig();
             else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
             else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
-            else if ( !strcmp( &arg[1], "f" ) ) parse_fastqout();
+            else if ( !strcmp( &arg[1], "f" ) ) parse_format( argv[++i] );
             else if ( !strcmp( &arg[1], "h" ) ) help();
             else
                 ERROR( "unknown argument: %s", arg );
@@ -130,13 +130,13 @@ args_t::args_t( int argc, const char * argv[] ) :
     }
 
     if ( !fastq && ( !fasta || !qual ) )
-        ERROR( "missing required argument -F FASTQ or -Q FASTA QUAL" );
+        ERROR( "missing required argument -F FASTA QUAL or -Q FASTQ" );
 }
 
 void args_t::parse_qual( const char * fstr, const char * qstr )
 {
     if ( fastq )
-        ERROR( "-Q and -F are mutually exclusive" );
+        ERROR( "-F and -Q are mutually exclusive" );
 
     fasta = fstr;
     qual = qstr;
@@ -145,7 +145,7 @@ void args_t::parse_qual( const char * fstr, const char * qstr )
 void args_t::parse_fastq( const char * str )
 {
     if ( fasta || qual )
-        ERROR( "-F and -Q are mutually exclusive" );
+        ERROR( "-Q and -F are mutually exclusive" );
 
     fastq = str;
 }
@@ -216,7 +216,12 @@ void args_t::parse_tagmismatch( const char * str )
         ERROR( "maximum tag mismatch expected non-negative integer, had: %s", str );
 }
 
-void args_t::parse_fastqout()
+void args_t::parse_format( const char * str )
 {
-    fastq_out = true;
+    if ( !strcmp( str, "FASTA" ) )
+        format = FASTA;
+    else if ( !strcmp( str, "FASTQ" ) )
+        format = FASTQ;
+    else
+        ERROR( "invalid format %s", str );
 }
