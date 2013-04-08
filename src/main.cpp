@@ -181,7 +181,7 @@ int main( int argc, const char * argv[] )
                 continue;
 
             // print the read ID
-            fprintf( output, ">%s", seq.id->c_str() );
+            fprintf( output, "%c%s", args.fastq_out ? '@' : '>', seq.id->c_str() );
 
             // print the fragment identifier
             if ( nfragment > 0 )
@@ -193,15 +193,29 @@ int main( int argc, const char * argv[] )
                 ncontrib += 1;
             }
 
+#define BUF_LEN 60
             // print the read sequence
-            for ( i = from; i < to; i += 60 ) {
-                char buf[61];
-                const int nitem = ( to - i < 60 ) ? to - i : 60;
+            for ( i = from; i < to; i += BUF_LEN ) {
+                char buf[BUF_LEN + 1];
+                const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                 strncpy( buf, seq.seq->c_str() + i, nitem );
                 buf[nitem] = '\0';
-                fprintf( output, "%s\n", buf );
+                fprintf( output, args.fastq_out ? "%s" : "%s\n", buf );
             }
 
+            if ( args.fastq_out ) {
+                fprintf( output, "\n+\n" );
+                for ( i = from; i < to; i += BUF_LEN ) {
+                    char buf[BUF_LEN + 1];
+                    const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
+                    for ( int j = 0; j < nitem; ++j )
+                        buf[j] = ( char ) ( ( *seq.quals )[i + j] + 33 );
+                    buf[nitem] = '\0';
+                    fprintf( output, "%s", buf );
+                }
+                fprintf( output, "\n" );
+            }
+#undef BUF_LEN
 #if 0
             // for printing quality scores
             fprintf( output, "+\n" );
@@ -250,8 +264,8 @@ int main( int argc, const char * argv[] )
              args.min_length,
              ( ( args.split ? 1 : 0 ) | ( args.hpoly ? 2 : 0 ) | ( args.ambig ? 4 : 0 ) ),
              args.split ? "split" : "truncate",
-             args.hpoly ? "retain homopolymers" : "don't retain homopolymers",
-             args.ambig ? "skip ambigs" : "don't skip ambigs"
+             args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
+             args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
            );
 
     if ( args.tag_length )

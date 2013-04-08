@@ -10,6 +10,7 @@
 #define DEFAULT_MIN_QSCORE 20
 #define DEFAULT_MODE 0
 #define DEFAULT_TAG_MISMATCH 0
+#define DEFAULT_FASTQ_OUT false
 
 class args_t
 {
@@ -26,6 +27,7 @@ public:
     char tag[256];
     long tag_length;
     long tag_mismatch;
+    bool fastq_out; // output FASTQ
 
     args_t( int, const char ** );
 private:
@@ -35,8 +37,12 @@ private:
     void parse_minlength( const char * );
     void parse_minqscore( const char * );
     void parse_mode( const char * );
+    void parse_split();
+    void parse_hpoly();
+    void parse_ambig();
     void parse_tag( const char * );
     void parse_tagmismatch( const char * );
+    void parse_fastqout();
 };
 
 #endif // ARGPARSE_H

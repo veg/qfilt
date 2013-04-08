@@ -16,10 +16,11 @@ const char usage[] =
     "[-o OUTPUT] "
     "[-q QSCORE] "
     "[-l LENGTH] "
-    "[-m MODE] "
+    "[-m MODE] [-s] [-p] [-a]"
     "[-T PREFIX] "
     "[-t MISMATCH] "
-    "(-F FASTQ | -Q FASTA QUAL)\n";
+    "[-f] "
+    "( -F FASTQ | -Q FASTA QUAL )\n";
 
 const char help_msg[] =
     "filter sequencing data using some simple heuristics\n"
@@ -35,14 +36,17 @@ const char help_msg[] =
     "                           or truncated (default=" TO_STR( DEFAULT_MIN_QSCORE ) ")\n"
     "  -l LENGTH                minimum retained fragment LENGTH (default=" TO_STR( DEFAULT_MIN_LENGTH ) ")\n"
     "  -m MODE                  MODE is a 3-bitmask (an integer in [0-7], default=" TO_STR( DEFAULT_MODE ) "):\n"
-    "                           if the lowest bit is set, a low q-score causes reads to be split,\n"
-    "                           otherwise they are truncated;\n"
-    "                           if the second bit is set, low q-score homopolymers are tolerated;\n"
-    "                           and if the highest bit is set, low q-score 'N's are tolerated\n"
+    "                           if the lowest bit is set, it is like passing -s;\n"
+    "                           if the middle bit is set, it is like passing -p;\n"
+    "                           and if the highest bit is set, it is like passing -a\n"
+    "  -s                       when encountering a low q-score, split instead of truncate\n"
+    "  -p                       tolerate low q-score homopolymeric regions\n"
+    "  -a                       tolerate low q-score ambiguous nucleotides\n"
     "  -T PREFIX                if supplied, only reads with this PREFIX are retained,\n"
     "                           and the PREFIX is stripped from each contributing read\n"
     "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
-    "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n";
+    "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n"
+    "  -f                       output FASTQ format\n";
 
 inline
 void help()
@@ -67,7 +71,8 @@ args_t::args_t( int argc, const char * argv[] ) :
     min_length( DEFAULT_MIN_LENGTH ),
     min_qscore( DEFAULT_MIN_QSCORE ),
     tag_length( 0 ),
-    tag_mismatch( DEFAULT_TAG_MISMATCH )
+    tag_mismatch( DEFAULT_TAG_MISMATCH ),
+    fastq_out( DEFAULT_FASTQ_OUT )
 {
     int i;
     // make sure tag is an empty string
@@ -110,8 +115,12 @@ args_t::args_t( int argc, const char * argv[] ) :
             else if ( !strcmp( &arg[1], "l" ) ) parse_minlength( argv[++i] );
             else if ( !strcmp( &arg[1], "q" ) ) parse_minqscore( argv[++i] );
             else if ( !strcmp( &arg[1], "m" ) ) parse_mode( argv[++i] );
+            else if ( !strcmp( &arg[1], "s" ) ) parse_split();
+            else if ( !strcmp( &arg[1], "p" ) ) parse_hpoly();
+            else if ( !strcmp( &arg[1], "a" ) ) parse_ambig();
             else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
             else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
+            else if ( !strcmp( &arg[1], "f" ) ) parse_fastqout();
             else if ( !strcmp( &arg[1], "h" ) ) help();
             else
                 ERROR( "unknown argument: %s", arg );
@@ -174,6 +183,21 @@ void args_t::parse_mode( const char * str )
     ambig = ( mode & 4 );
 }
 
+void args_t::parse_split()
+{
+    split = true;
+}
+
+void args_t::parse_hpoly()
+{
+    hpoly = true;
+}
+
+void args_t::parse_ambig()
+{
+    ambig = true;
+}
+
 void args_t::parse_tag( const char * str )
 {
     int nvar = sscanf( str, "%256s", tag );
@@ -190,4 +214,9 @@ void args_t::parse_tagmismatch( const char * str )
 
     if ( tag_mismatch < 0 )
         ERROR( "maximum tag mismatch expected non-negative integer, had: %s", str );
+}
+
+void args_t::parse_fastqout()
+{
+    fastq_out = true;
 }
