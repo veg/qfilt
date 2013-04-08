@@ -15,7 +15,6 @@ add_executable(
     src/main.cpp
     src/argparse.cpp
     src/seq.cpp
-    src/str.cpp
     src/strtok.cpp
 )
 

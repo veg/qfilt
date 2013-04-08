@@ -1,12 +1,13 @@
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 #include "argparse.hpp"
 #include "seq.hpp"
-#include "vec.hpp"
 
 #if 0
 static const char * const valid_chars = "ACGTNacgtn";
@@ -14,7 +15,7 @@ static long char_lookup[256];
 #endif
 
 // vec must be sorted
-void fprint_vector_stats( FILE * file, vec_t<long> & vec, const char * hdr )
+void fprint_vector_stats( FILE * file, std::vector<long> & vec, const char * hdr )
 {
     double sum = 0.,
            var = 0.,
@@ -26,15 +27,15 @@ void fprint_vector_stats( FILE * file, vec_t<long> & vec, const char * hdr )
          ninetyseven5 = 0,
          max = 0;
 
-    for ( i = 0; i < vec.length(); ++i ) {
+    for ( i = 0; i < vec.size(); ++i ) {
         sum += vec[i];
         var += vec[i] * vec[i];
     }
 
-    // remember, i == vec.length()
+    // remember, i == vec.size()
 
-    if ( vec.length() ) {
-        var = ( var - ( sum * sum ) / vec.length() ) / ( vec.length() - 1 );
+    if ( vec.size() ) {
+        var = ( var - ( sum * sum ) / vec.size() ) / ( vec.size() - 1 );
         mean = sum / i;
         median = ( i % 2 ) ? 1.0 * vec[i / 2] : 0.5 * ( vec[i / 2] + vec[i / 2 - 1] );
         min = vec[0];
@@ -102,8 +103,8 @@ int main( int argc, const char * argv[] )
         char_lookup[valid_chars[i]] = i;
 
 #endif
-    vec_t<long> read_lengths = vec_t<long>();
-    vec_t<long> fragment_lengths = vec_t<long>();
+    std::vector<long> read_lengths;
+    std::vector<long> fragment_lengths;
 
     for ( ; parser->next( seq ); seq.clear() ) {
         // maxto is the maximum value of "to",
@@ -111,7 +112,7 @@ int main( int argc, const char * argv[] )
         const long maxto = seq.length - args.min_length;
         long nfragment = 0,
              to = 0;
-        read_lengths.append( seq.length );
+        read_lengths.push_back( seq.length );
 
         // compare the sequence prefix to the tag,
         // if it matches by at least tag_mismatch,
@@ -231,7 +232,7 @@ int main( int argc, const char * argv[] )
 
             fprintf( output, "\n" );
 #endif
-            fragment_lengths.append( to - from - nambigs );
+            fragment_lengths.push_back( to - from - nambigs );
 
             if ( !args.split )
                 break;
@@ -282,13 +283,13 @@ int main( int argc, const char * argv[] )
              "    original reads:      %ld\n"
              "    contributing reads:  %ld\n"
              "    retained fragments:  %ld\n",
-             read_lengths.length(),
+             read_lengths.size(),
              ncontrib,
-             fragment_lengths.length()
+             fragment_lengths.size()
            );
     // print original read length and retained fragment length statistics
-    read_lengths.sort();
-    fragment_lengths.sort();
+    std::sort( read_lengths.begin(), read_lengths.end() );
+    std::sort( fragment_lengths.begin(), fragment_lengths.end() );
     fprint_vector_stats( stderr, read_lengths, "\noriginal read length distribution:" );
     fprint_vector_stats( stderr, fragment_lengths, "\nretained fragment length distribution:" );
 

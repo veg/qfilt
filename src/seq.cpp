@@ -24,7 +24,7 @@
 
 pos_t::pos_t( const char * file ) : file( file ), line( 1 ), col( 1 )
 {
-    cols = new vec_t<unsigned long>;
+    cols = new std::vector<unsigned long>();
 }
 
 pos_t::~pos_t()
@@ -43,9 +43,9 @@ void pos_t::get( const char *& f, long & l, long & c ) const
 
 seq_t::seq_t() : length( 0 )
 {
-    id = new str_t();
-    seq = new str_t();
-    quals = new vec_t<long>();
+    id = new std::string();
+    seq = new std::string();
+    quals = new std::vector<long>();
 }
 
 seq_t::~seq_t()
@@ -96,7 +96,7 @@ void skip_ws( FILE * file, pos_t & pos )
     }
 }
 
-long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bool trim )
+long extend_until( std::string & str, const char * delim, FILE * file, pos_t & pos, bool trim )
 {
     char buf[256];
     long total = 0;
@@ -108,7 +108,7 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
 
         if ( pch ) {
             const long nchar = pch - buf;
-            str.extend( buf, nchar );
+            str.append( buf, nchar );
 
             if ( pch[0] == '\n' ) {
                 pos.next_col( nchar - 1 );
@@ -140,7 +140,7 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
             pos.next_col( len );
 
         // extend the string by the appropriate number of chars
-        str.extend( buf, len - truncate );
+        str.append( buf, len - truncate );
         total += len - truncate;
 
         if ( trim )
@@ -152,7 +152,7 @@ long extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos, bo
 
 // by default trim whitespace from the beginning of lines
 inline
-int extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos )
+int extend_until( std::string & str, const char * delim, FILE * file, pos_t & pos )
 {
     return extend_until( str, delim, file, pos, true );
 }
@@ -161,8 +161,8 @@ int extend_until( str_t & str, const char * delim, FILE * file, pos_t & pos )
 
 void parser_t::init()
 {
-    qid = new str_t();
-    qs = new str_t();
+    qid = new std::string();
+    qs = new std::string();
 }
 
 const char chr[] = ">\0@\0+";
@@ -255,7 +255,7 @@ begin:
         }
 
         case ID: {
-            str_t * str = ( filetype == QUAL ) ? qid : seq.id;
+            std::string * str = ( filetype == QUAL ) ? qid : seq.id;
             int nelem = extend_until( *str, "\r\n", file, *pos );
 
             if ( nelem < 1 )
@@ -321,14 +321,14 @@ begin:
                 strtok_t tok( qs->c_str() );
 
                 while ( ( buf = tok.next( " \t\r\n" ) ) )
-                    seq.quals->append( atoi( buf ) );
+                    seq.quals->push_back( atoi( buf ) );
             }
             else { // FASTQ
                 int i;
 
                 for ( i = 0; i < qs->length(); ++i ) {
                     // encoding: chr(phred+33)
-                    seq.quals->append( long( ( *qs )[i] ) - 33 );
+                    seq.quals->push_back( long( ( *qs )[i] ) - 33 );
                 }
             }
 
@@ -359,12 +359,12 @@ begin:
         goto begin;
     }
 
-    if ( seq.seq->length() != seq.quals->length() )
+    if ( seq.seq->length() != seq.quals->size() )
         PARSE_ERROR(
             *pos,
             "malformed file: sequence length (%ld) does not match the number of quality scores (%ld)",
             seq.seq->length(),
-            seq.quals->length()
+            seq.quals->size()
         )
     else
         seq.length = seq.seq->length();

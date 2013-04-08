@@ -3,9 +3,8 @@
 #define SEQ_H
 
 #include <cstdio>
-
-#include "str.hpp"
-#include "vec.hpp"
+#include <string>
+#include <vector>
 
 enum state_t {
     UNKNOWN,
@@ -26,7 +25,7 @@ private:
     const char * file;
     unsigned long line;
     unsigned long col;
-    vec_t<unsigned long> * cols;
+    std::vector<unsigned long> * cols;
 
 public:
     pos_t( const char * file );
@@ -46,7 +45,7 @@ public:
     inline
     void next_line() {
         line += 1;
-        cols->append( col );
+        cols->push_back( col );
         col = 1;
     }
 
@@ -70,9 +69,9 @@ public:
 class seq_t
 {
 public:
-    str_t * id;
-    str_t * seq;
-    vec_t<long> * quals;
+    std::string * id;
+    std::string * seq;
+    std::vector<long> * quals;
     long length;
     seq_t();
     void clear();
@@ -95,8 +94,8 @@ private:
     const char * const sep;
 
     // these are permanent static buffer
-    str_t * qid;
-    str_t * qs;
+    std::string * qid;
+    std::string * qs;
 
 protected:
     void init();
