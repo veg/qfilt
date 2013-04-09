@@ -189,18 +189,22 @@ namespace argparse
 
     void args_t::parse_minlength( const char * str )
     {
-        min_length = atoi( str );
+        long val = atoi( str );
 
-        if ( min_length < 1 )
+        if ( val < 1 )
             ERROR( "minimum length expected a positive integer, had: %s", str );
+
+        min_length = size_t( val );
     }
 
     void args_t::parse_minqscore( const char * str )
     {
-        min_qscore = atoi( str );
+        long val = atoi( str );
 
-        if ( min_qscore < 0 )
+        if ( val < 0 )
             ERROR( "min q-score expected a non-negative integer, had: %s", str );
+
+        min_qscore = size_t( val );
     }
 
     void args_t::parse_mode( const char * str )
@@ -242,10 +246,12 @@ namespace argparse
 
     void args_t::parse_tagmismatch( const char * str )
     {
-        tag_mismatch = atoi( str );
+        long val = atoi( str );
 
-        if ( tag_mismatch < 0 )
+        if ( val < 0 )
             ERROR( "maximum tag mismatch expected non-negative integer, had: %s", str );
+    
+        tag_mismatch = size_t( val );
     }
 
     void args_t::parse_format( const char * str )

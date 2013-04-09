@@ -7,7 +7,7 @@
 
 #define MALFUNCTION() \
 { \
-    fprintf( stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", basename( __FILE__ ), __LINE__ ); \
+    fprintf( stderr, "\nERROR (file: %s, line: %d): state machine malfunction\n", __basename( __FILE__ ), __LINE__ ); \
     exit( 1 ); \
 }
 
@@ -112,7 +112,7 @@ namespace seq
                 }
 
                 default:
-                    MALFUNCTION()
+                    MALFUNCTION();
                 }
 
                 break;
@@ -151,7 +151,7 @@ namespace seq
             }
 
             default:
-                MALFUNCTION()
+                MALFUNCTION();
             }
         }
         while ( *state != UNKNOWN );
