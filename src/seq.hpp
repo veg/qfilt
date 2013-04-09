@@ -25,11 +25,10 @@ private:
     const char * file;
     unsigned long line;
     unsigned long col;
-    std::vector<unsigned long> * cols;
+    std::vector<unsigned long> cols;
 
 public:
     pos_t( const char * file );
-    ~pos_t();
     void get( const char *& f, long & l, long & c ) const;
 
     inline
@@ -45,7 +44,7 @@ public:
     inline
     void next_line() {
         line += 1;
-        cols->push_back( col );
+        cols.push_back( col );
         col = 1;
     }
 
@@ -62,20 +61,19 @@ public:
     inline
     void prev_line() {
         line -= 1;
-        col = ( *cols )[line - 1];
+        col = cols[line - 1];
     }
 };
 
 class seq_t
 {
 public:
-    std::string * id;
-    std::string * seq;
-    std::vector<long> * quals;
+    std::string id;
+    std::string seq;
+    std::vector<long> quals;
     long length;
     seq_t();
     void clear();
-    ~seq_t();
 };
 
 class parser_t
@@ -88,17 +86,16 @@ private:
     pos_t qpos;
     state_t fstate;
     state_t qstate;
+    char fchr;
+    char qchr;
 
     // these are for parsing
     const char * const hdr;
     const char * const sep;
 
     // these are permanent static buffer
-    std::string * qid;
-    std::string * qs;
-
-protected:
-    void init();
+    std::string qid;
+    std::string qs;
 
 public:
     parser_t( const char * );

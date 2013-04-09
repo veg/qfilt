@@ -34,7 +34,7 @@ public:
     args_t( int, const char ** );
 private:
     void parse_fastq( const char * );
-    void parse_qual( const char *, const char * );
+    void parse_fasta( const char *, const char * );
     void parse_output( const char * );
     void parse_minlength( const char * );
     void parse_minqscore( const char * );

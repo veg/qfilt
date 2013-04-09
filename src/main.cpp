@@ -122,7 +122,7 @@ int main( int argc, const char * argv[] )
 
             for ( to = 0; to < args.tag_length; ++to ) {
                 // tolower -> case insensitive
-                if ( toupper( ( *seq.seq )[to] ) != toupper( args.tag[to] ) )
+                if ( toupper( seq.seq[to] ) != toupper( args.tag[to] ) )
                     mismatch += 1;
             }
 
@@ -139,7 +139,7 @@ int main( int argc, const char * argv[] )
                  nambigs = 0;
 
             // push through the sequence until the quality score meets the minimum
-            while ( ( to <= maxto ) && ( ( *seq.quals )[to] < args.min_qscore ) ) {
+            while ( ( to <= maxto ) && ( seq.quals[to] < args.min_qscore ) ) {
                 to += 1;
             }
 
@@ -154,10 +154,10 @@ int main( int argc, const char * argv[] )
             // build a read until we hit a low quality score,
             // that is, unless we're skipping Ns or retaining homopolymers
             for ( ; to < seq.length; ++to ) {
-                char curr = ( *seq.seq )[to],
+                char curr = seq.seq[to],
                      last = -1;
 
-                if ( ( *seq.quals )[to] < args.min_qscore ) {
+                if ( seq.quals[to] < args.min_qscore ) {
                     // if homopolymer (toupper -> case insensitive), continue (last == curr)
                     if ( args.hpoly && toupper( last ) == toupper( curr ) )
                         continue;
@@ -182,7 +182,7 @@ int main( int argc, const char * argv[] )
                 continue;
 
             // print the read ID
-            fprintf( output, "%c%s", ( args.format == FASTQ ) ? '@' : '>', seq.id->c_str() );
+            fprintf( output, "%c%s", ( args.format == FASTQ ) ? '@' : '>', seq.id.c_str() );
 
             // print the fragment identifier
             if ( nfragment > 0 )
@@ -199,7 +199,7 @@ int main( int argc, const char * argv[] )
             for ( i = from; i < to; i += BUF_LEN ) {
                 char buf[BUF_LEN + 1];
                 const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
-                strncpy( buf, seq.seq->c_str() + i, nitem );
+                strncpy( buf, seq.seq.c_str() + i, nitem );
                 buf[nitem] = '\0';
                 fprintf( output, ( args.format == FASTQ ) ? "%s" : "%s\n", buf );
             }
@@ -210,7 +210,7 @@ int main( int argc, const char * argv[] )
                     char buf[BUF_LEN + 1];
                     const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                     for ( int j = 0; j < nitem; ++j )
-                        buf[j] = ( char ) ( ( *seq.quals )[i + j] + 33 );
+                        buf[j] = ( char ) ( seq.quals[i + j] + 33 );
                     buf[nitem] = '\0';
                     fprintf( output, "%s", buf );
                 }

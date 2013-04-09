@@ -85,32 +85,23 @@ args_t::args_t( int argc, const char * argv[] ) :
         const char * arg = argv[i];
 
         if ( arg[0] == '-' && arg[1] == '-' ) {
-            if ( !strcmp( &arg[2], "help" ) )
-                help();
-
+            if ( !strcmp( &arg[2], "help" ) ) help();
 #if 0
-
-            if ( !strcmp( &arg[2], "fastq" ) ) parse_fastq( argv[++i] );
-            else if ( !strcmp( &arg[2], "qual" ) ) {
-                parse_qual( argv[i + 1], argv[i + 2] );
-                i += 2;
-            }
+            else if ( !strcmp( &arg[2], "fastq" ) ) parse_fastq( argv[++i] );
+            else if ( !strcmp( &arg[2], "fasta" ) ) parse_fasta( argv[++i], argv[++i] );
             else if ( !strcmp( &arg[2], "minlength" ) ) parse_minlength( argv[++i] );
             else if ( !strcmp( &arg[2], "minqscore" ) ) parse_minqscore( argv[++i] );
             else if ( !strcmp( &arg[2], "mode" ) ) parse_mode( argv[++i] );
             else if ( !strcmp( &arg[2], "tag" ) ) parse_tag( argv[++i] );
             else if ( !strcmp( &arg[2], "tagmismatch" ) ) parse_tagmismatch( argv[++i] );
-
 #endif
             else
                 ERROR( "unknown argument: %s", arg );
         }
         else if ( arg[0] == '-' ) {
-            if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( argv[++i] );
-            else if ( !strcmp( &arg[1], "F" ) ) {
-                parse_qual( argv[i + 1], argv[i + 2] );
-                i += 2;
-            }
+            if ( !strcmp( &arg[1], "h" ) ) help();
+            else if ( !strcmp( &arg[1], "F" ) ) parse_fasta( argv[++i], argv[++i] );
+            else if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( argv[++i] );
             else if ( !strcmp( &arg[1], "o" ) ) parse_output( argv[++i] );
             else if ( !strcmp( &arg[1], "l" ) ) parse_minlength( argv[++i] );
             else if ( !strcmp( &arg[1], "q" ) ) parse_minqscore( argv[++i] );
@@ -121,7 +112,6 @@ args_t::args_t( int argc, const char * argv[] ) :
             else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
             else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
             else if ( !strcmp( &arg[1], "f" ) ) parse_format( argv[++i] );
-            else if ( !strcmp( &arg[1], "h" ) ) help();
             else
                 ERROR( "unknown argument: %s", arg );
         }
@@ -129,11 +119,14 @@ args_t::args_t( int argc, const char * argv[] ) :
             ERROR( "unknown argument: %s", arg );
     }
 
+    if ( fasta && !strcmp( fasta, "-" ) && !strcmp( fasta, qual ) ) 
+        ERROR( "only one argument to -F FASTA QUAL can be STDIN" );
+
     if ( !fastq && ( !fasta || !qual ) )
         ERROR( "missing required argument -F FASTA QUAL or -Q FASTQ" );
 }
 
-void args_t::parse_qual( const char * fstr, const char * qstr )
+void args_t::parse_fasta( const char * fstr, const char * qstr )
 {
     if ( fastq )
         ERROR( "-F and -Q are mutually exclusive" );
