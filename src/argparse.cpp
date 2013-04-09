@@ -88,7 +88,10 @@ args_t::args_t( int argc, const char * argv[] ) :
             if ( !strcmp( &arg[2], "help" ) ) help();
 #if 0
             else if ( !strcmp( &arg[2], "fastq" ) ) parse_fastq( argv[++i] );
-            else if ( !strcmp( &arg[2], "fasta" ) ) parse_fasta( argv[++i], argv[++i] );
+            else if ( !strcmp( &arg[2], "fasta" ) ) {
+                parse_fasta( argv[i + 1], argv[i + 2] );
+                i += 2;
+            }
             else if ( !strcmp( &arg[2], "minlength" ) ) parse_minlength( argv[++i] );
             else if ( !strcmp( &arg[2], "minqscore" ) ) parse_minqscore( argv[++i] );
             else if ( !strcmp( &arg[2], "mode" ) ) parse_mode( argv[++i] );
@@ -100,7 +103,10 @@ args_t::args_t( int argc, const char * argv[] ) :
         }
         else if ( arg[0] == '-' ) {
             if ( !strcmp( &arg[1], "h" ) ) help();
-            else if ( !strcmp( &arg[1], "F" ) ) parse_fasta( argv[++i], argv[++i] );
+            else if ( !strcmp( &arg[1], "F" ) ) {
+                parse_fasta( argv[i + 1], argv[i + 2] );
+                i += 2;
+            }
             else if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( argv[++i] );
             else if ( !strcmp( &arg[1], "o" ) ) parse_output( argv[++i] );
             else if ( !strcmp( &arg[1], "l" ) ) parse_minlength( argv[++i] );

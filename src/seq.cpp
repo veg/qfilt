@@ -273,7 +273,7 @@ begin:
                     seq.quals.push_back( atoi( buf ) );
             }
             else { // FASTQ
-                int i;
+                size_t i;
 
                 for ( i = 0; i < qs.length(); ++i ) {
                     // encoding: chr(phred+33)

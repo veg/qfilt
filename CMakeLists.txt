@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(qfilt)
 
+# set(CMAKE_CXX_COMPILER "g++-4.7")
+# set(CMAKE_EXE_LINKER_FLAGS "-g -pg -Wall")
 set(INSTALL_PREFIX /usr/local CACHE PATH "Installation prefix")
 set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE INTERNAL "Installation prefix" FORCE)
 
@@ -25,6 +27,7 @@ set_target_properties(
     qfilt
     PROPERTIES
     COMPILE_FLAGS "-O3 -Wall -Werror"
+    # COMPILE_FLAGS "-O3 -g -pg -Wall -Werror"
 )
 
 install(

@@ -21,11 +21,11 @@ void fprint_vector_stats( FILE * file, std::vector<long> & vec, const char * hdr
            var = 0.,
            mean = 0.,
            median = 0.;
-    long i,
-         min = 0,
+    long min = 0,
          two5 = 0,
          ninetyseven5 = 0,
          max = 0;
+    size_t i;
 
     for ( i = 0; i < vec.size(); ++i ) {
         sum += vec[i];
