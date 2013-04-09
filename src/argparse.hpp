@@ -2,7 +2,7 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
 
-#include "seq.hpp"
+#include "ifile.hpp"
 
 // program name
 #define QFILT "qfilt"
@@ -14,37 +14,46 @@
 #define DEFAULT_TAG_MISMATCH 0
 #define DEFAULT_FORMAT FASTA
 
-class args_t
+namespace argparse
 {
-public:
-    const char * fastq;
-    const char * fasta;
-    const char * qual;
-    const char * output;
-    long min_length;
-    long min_qscore;
-    bool split; // split not truncate
-    bool hpoly; // tolerate homopolymers
-    bool ambig; // tolerate ambigs ('N')
-    char tag[256];
-    long tag_length;
-    long tag_mismatch;
-    filetype_t format;
+    enum format_t {
+        FASTA,
+        FASTQ
+    };
 
-    args_t( int, const char ** );
-private:
-    void parse_fastq( const char * );
-    void parse_fasta( const char *, const char * );
-    void parse_output( const char * );
-    void parse_minlength( const char * );
-    void parse_minqscore( const char * );
-    void parse_mode( const char * );
-    void parse_split();
-    void parse_hpoly();
-    void parse_ambig();
-    void parse_tag( const char * );
-    void parse_tagmismatch( const char * );
-    void parse_format( const char * );
-};
+    class args_t
+    {
+    public:
+        ifile::ifile_t * fasta;
+        ifile::ifile_t * fastq;
+        ifile::ifile_t * qual;
+        FILE * output;
+        long min_length;
+        long min_qscore;
+        bool split; // split not truncate
+        bool hpoly; // tolerate homopolymers
+        bool ambig; // tolerate ambigs ('N')
+        char tag[256];
+        long tag_length;
+        long tag_mismatch;
+        format_t format;
+
+        args_t( int, const char ** );
+        ~args_t();
+    private:
+        void parse_fastq( const char * );
+        void parse_fasta( const char *, const char * );
+        void parse_output( const char * );
+        void parse_minlength( const char * );
+        void parse_minqscore( const char * );
+        void parse_mode( const char * );
+        void parse_split();
+        void parse_hpoly();
+        void parse_ambig();
+        void parse_tag( const char * );
+        void parse_tagmismatch( const char * );
+        void parse_format( const char * );
+    };
+}
 
 #endif // ARGPARSE_H

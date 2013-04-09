@@ -14,8 +14,9 @@ include_directories(
 
 add_executable(
     qfilt
-    src/main.cpp
     src/argparse.cpp
+    src/ifile.cpp
+    src/main.cpp
     src/seq.cpp
     src/strtok.cpp
 )
@@ -26,7 +27,7 @@ target_link_libraries(qfilt m)
 set_target_properties(
     qfilt
     PROPERTIES
-    COMPILE_FLAGS "-O3 -Wall -Werror"
+    COMPILE_FLAGS "-O3 -std=c++98 -pedantic-errors -Wall -Werror"
     # COMPILE_FLAGS "-O3 -g -pg -Wall -Werror"
 )
 

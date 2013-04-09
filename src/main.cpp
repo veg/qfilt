@@ -69,25 +69,16 @@ void fprint_vector_stats( FILE * file, std::vector<long> & vec, const char * hdr
 
 int main( int argc, const char * argv[] )
 {
-    args_t args = args_t( argc, argv );
-    parser_t * parser = NULL;
-    seq_t seq = seq_t();
+    argparse::args_t args = argparse::args_t( argc, argv );
+    seq::parser_t * parser = NULL;
+    seq::seq_t seq = seq::seq_t();
     long ncontrib = 0;
-    // if -o is unsupplied or -o - is supplied, use stdout
-    FILE * output = ( args.output && strcmp( args.output, "-" ) )
-                    ? fopen( args.output, "wb" )
-                    : stdout;
-
-    if ( !output ) {
-        fprintf( stderr, "\nERROR: failed to open OUTPUT file %s\n", args.output );
-        exit( 1 );
-    }
 
     // initialize the parser
     if ( args.fastq )
-        parser = new parser_t( args.fastq );
+        parser = new seq::parser_t( args.fastq );
     else
-        parser = new parser_t( args.fasta, args.qual );
+        parser = new seq::parser_t( args.fasta, args.qual );
 
     if ( !parser ) {
         fprintf( stderr, "\nERROR: failed to initialize parser\n" );
@@ -182,44 +173,53 @@ int main( int argc, const char * argv[] )
                 continue;
 
             // print the read ID
-            fprintf( output, "%c%s", ( args.format == FASTQ ) ? '@' : '>', seq.id.c_str() );
+            fprintf(
+                args.output,
+                "%c%s",
+                ( args.format == argparse::FASTQ ) ? '@' : '>',
+                seq.id.c_str()
+                );
 
             // print the fragment identifier
             if ( nfragment > 0 )
-                fprintf( output, " fragment=%ld\n", nfragment + 1 );
+                fprintf( args.output, " fragment=%ld\n", nfragment + 1 );
             else {
-                fprintf( output, "\n" );
+                fprintf( args.output, "\n" );
                 // if it's the first fragment,
                 // count the contributing read
                 ncontrib += 1;
             }
 
-#define BUF_LEN 60
+            const size_t BUF_LEN = 60;
+
             // print the read sequence
             for ( i = from; i < to; i += BUF_LEN ) {
                 char buf[BUF_LEN + 1];
                 const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                 strncpy( buf, seq.seq.c_str() + i, nitem );
                 buf[nitem] = '\0';
-                fprintf( output, ( args.format == FASTQ ) ? "%s" : "%s\n", buf );
+                fprintf(
+                    args.output,
+                    ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                    buf
+                    );
             }
 
-            if ( args.format == FASTQ ) {
-                fprintf( output, "\n+\n" );
+            if ( args.format == argparse::FASTQ ) {
+                fprintf( args.output, "\n+\n" );
                 for ( i = from; i < to; i += BUF_LEN ) {
                     char buf[BUF_LEN + 1];
                     const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                     for ( int j = 0; j < nitem; ++j )
                         buf[j] = ( char ) ( seq.quals[i + j] + 33 );
                     buf[nitem] = '\0';
-                    fprintf( output, "%s", buf );
+                    fprintf( args.output, "%s", buf );
                 }
-                fprintf( output, "\n" );
+                fprintf( args.output, "\n" );
             }
-#undef BUF_LEN
 #if 0
             // for printing quality scores
-            fprintf( output, "+\n" );
+            fprintf( args.output, "+\n" );
 
             for ( i = from; i < to; ++i ) {
                 char s[] = " ";
@@ -227,10 +227,10 @@ int main( int argc, const char * argv[] )
                 if ( i == from )
                     s[0] = '\0';
 
-                fprintf( output, "%s%ld", s, ( *seq.quals )[i] );
+                fprintf( args.output, "%s%ld", s, ( *seq.quals )[i] );
             }
 
-            fprintf( output, "\n" );
+            fprintf( args.output, "\n" );
 #endif
             fragment_lengths.push_back( to - from - nambigs );
 
@@ -248,13 +248,13 @@ int main( int argc, const char * argv[] )
         fprintf( stderr,
                  "    input fasta:         %s\n"
                  "    input qual:          %s\n",
-                 args.fasta,
-                 args.qual
+                 args.fasta->path,
+                 args.qual->path
                );
     else
         fprintf( stderr,
                  "    input fastq:         %s\n",
-                 args.fastq
+                 args.fastq->path
                );
 
     fprintf( stderr,
@@ -294,9 +294,6 @@ int main( int argc, const char * argv[] )
     fprint_vector_stats( stderr, fragment_lengths, "\nretained fragment length distribution:" );
 
     delete parser;
-
-    if ( output && output != stdout )
-        fclose( output );
 
     return 0;
 }
