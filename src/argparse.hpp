@@ -28,14 +28,14 @@ namespace argparse
         ifile::ifile_t * fastq;
         ifile::ifile_t * qual;
         FILE * output;
-        long min_length;
-        long min_qscore;
+        size_t min_length;
+        size_t min_qscore;
         bool split; // split not truncate
         bool hpoly; // tolerate homopolymers
         bool ambig; // tolerate ambigs ('N')
         char tag[256];
-        long tag_length;
-        long tag_mismatch;
+        size_t tag_length;
+        size_t tag_mismatch;
         format_t format;
 
         args_t( int, const char ** );

@@ -15,7 +15,7 @@ static long char_lookup[256];
 #endif
 
 // vec must be sorted
-void fprint_vector_stats( FILE * file, std::vector<long> & vec, const char * hdr )
+void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * hdr )
 {
     double sum = 0.,
            var = 0.,
@@ -94,22 +94,29 @@ int main( int argc, const char * argv[] )
         char_lookup[valid_chars[i]] = i;
 
 #endif
-    std::vector<long> read_lengths;
-    std::vector<long> fragment_lengths;
+    std::vector<size_t> read_lengths;
+    std::vector<size_t> fragment_lengths;
 
     for ( ; parser->next( seq ); seq.clear() ) {
         // maxto is the maximum value of "to",
         // NOT THE UPPER BOUND
-        const long maxto = seq.length - args.min_length;
-        long nfragment = 0,
-             to = 0;
+        const size_t maxto = seq.length - args.min_length;
+        size_t nfragment = 0,
+               to = 0;
+
         read_lengths.push_back( seq.length );
+
+        if ( seq.length < args.min_length )
+            continue;
 
         // compare the sequence prefix to the tag,
         // if it matches by at least tag_mismatch,
         // keep the sequence, otherwise discard
         if ( args.tag_length ) {
-            long mismatch = 0;
+            size_t mismatch = 0;
+
+            if ( maxto < args.tag_length )
+                continue;
 
             for ( to = 0; to < args.tag_length; ++to ) {
                 // tolower -> case insensitive
@@ -125,9 +132,9 @@ int main( int argc, const char * argv[] )
         // continue the following process until we reach the end of the sequence,
         // but only continue if there's enough left to produce a minimum-sized fragment
         while ( true ) {
-            long from = 0,
-                 i = 0,
-                 nambigs = 0;
+            size_t from = 0,
+                   i = 0,
+                   nambigs = 0;
 
             // push through the sequence until the quality score meets the minimum
             while ( ( to <= maxto ) && ( seq.quals[to] < args.min_qscore ) ) {
@@ -195,7 +202,7 @@ int main( int argc, const char * argv[] )
             // print the read sequence
             for ( i = from; i < to; i += BUF_LEN ) {
                 char buf[BUF_LEN + 1];
-                const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
+                const size_t nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
                 strncpy( buf, seq.seq.c_str() + i, nitem );
                 buf[nitem] = '\0';
                 fprintf(

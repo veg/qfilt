@@ -28,8 +28,8 @@ namespace seq
     public:
         std::string id;
         std::string seq;
-        std::vector<long> quals;
-        long length;
+        std::vector<size_t> quals;
+        size_t length;
         seq_t();
         void clear();
     };
