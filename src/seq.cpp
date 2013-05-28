@@ -104,7 +104,8 @@ namespace seq
                     else { // FASTQ
                         // skip over the + separator and any trailing whitespace
                         file->getc();
-                        file->skip_ws();
+                        file->extend_until( qid, "\r\n" );
+                        qid.clear();
                         *state = QUALITY;
                     }
 
