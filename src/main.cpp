@@ -15,7 +15,7 @@ static long char_lookup[256];
 #endif
 
 // vec must be sorted
-void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * hdr )
+void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * hdr, bool do_json )
 {
     double sum = 0.,
            var = 0.,
@@ -44,25 +44,48 @@ void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * h
         max = vec[i - 1];
     }
 
-    fprintf( file, "%s\n"
-             "    mean:                %g\n"
-             "    median:              %g\n"
-             "    variance             %g\n"
-             "    standard deviation:  %g\n"
-             "    min:                 %ld\n"
-             "    2.5%%:                %ld\n"
-             "    97.5%%:               %ld\n"
-             "    max:                 %ld\n",
-             hdr,
-             mean,
-             median,
-             var,
-             sqrt( var ),
-             min,
-             two5,
-             ninetyseven5,
-             max
-           );
+    if (do_json) {
+        fprintf (file, ",\n\t\"%s\": {"
+                 "\n\t\t\"mean\":                %g,"
+                 "\n\t\t\"median\":              %g,"
+                 "\n\t\t\"variance\":            %g,"
+                 "\n\t\t\"standard deviation\":  %g,"
+                 "\n\t\t\"min\":                 %ld,"
+                 "\n\t\t\"2.5%%\":                %ld,"
+                 "\n\t\t\"97.5%%\":               %ld,"
+                 "\n\t\t\"max\":                 %ld}",
+                 hdr,
+                 mean,
+                 median,
+                 var,
+                 sqrt( var ),
+                 min,
+                 two5,
+                 ninetyseven5,
+                 max
+                );
+   }
+    else {
+        fprintf( file, "\n%s\n"
+                 "    mean:                %g\n"
+                 "    median:              %g\n"
+                 "    variance             %g\n"
+                 "    standard deviation:  %g\n"
+                 "    min:                 %ld\n"
+                 "    2.5%%:                %ld\n"
+                 "    97.5%%:               %ld\n"
+                 "    max:                 %ld\n",
+                 hdr,
+                 mean,
+                 median,
+                 var,
+                 sqrt( var ),
+                 min,
+                 two5,
+                 ninetyseven5,
+                 max
+               );
+        }
 }
 
 // main ------------------------------------------------------------------------------------------------------------- //
@@ -249,57 +272,113 @@ int main( int argc, const char * argv[] )
         }
     }
 
-    fprintf( stderr, "run settings:\n" );
-
-    if ( args.fasta )
-        fprintf( stderr,
-                 "    input fasta:         %s\n"
-                 "    input qual:          %s\n",
-                 args.fasta->path,
-                 args.qual->path
+    if (args.json) {
+        fprintf( stderr, "{\"Settings\":{\n\t" );
+        if ( args.fasta )
+            fprintf( stderr,
+                     "\"fasta\": \"%s\",\n\t"
+                     "\"qual\":  \"%s\",\n\t",
+                     args.fasta->path,
+                     args.qual->path
+                   );
+        else
+            fprintf( stderr,
+                     "\"fastq\": \"%s\",\n\t",
+                     args.fastq->path
+                   );
+                   
+         fprintf( stderr,
+                 "\"min q-score\": %ld,\n\t"
+                 "\"min fragment length\": %ld,\n\t"
+                 "\"on low scores\": \"%s\",\n\t"
+                 "\"on homopolymers\": \"%s\",\n\t"
+                 "\"on ambiguities\": \"%s\"",   
+                 args.min_qscore,
+                 args.min_length,
+                  args.split ? "split" : "truncate",
+                 args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
+                 args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
                );
-    else
+               
+        if ( args.tag_length )
+            fprintf( stderr,
+                     ",\n\t\"tag\": \"%s\","
+                     ",\n\t\"max tag mismatches\":  %ld",
+                     args.tag,
+                     args.tag_mismatch
+                   );               
+       
+       fprintf ( stderr, 
+                "},\n"
+                "\"run summary\":{"
+                 "\n\t\"original reads\":      %ld,"
+                 "\n\t\"contributing reads\":  %ld,"
+                 "\n\t\"retained fragments\":  %ld",
+                 read_lengths.size(),
+                 ncontrib,
+                 fragment_lengths.size()
+                );
+                 
+        
+    } else {
+        fprintf( stderr, "run settings:\n" );
+
+        if ( args.fasta )
+            fprintf( stderr,
+                     "    input fasta:         %s\n"
+                     "    input qual:          %s\n",
+                     args.fasta->path,
+                     args.qual->path
+                   );
+        else
+            fprintf( stderr,
+                     "    input fastq:         %s\n",
+                     args.fastq->path
+                   );
+
         fprintf( stderr,
-                 "    input fastq:         %s\n",
-                 args.fastq->path
+                 "    min q-score:         %ld\n"
+                 "    min fragment length: %ld\n"
+                 "    run mode:            %d (%s/%s/%s)\n",
+                 args.min_qscore,
+                 args.min_length,
+                 ( ( args.split ? 1 : 0 ) | ( args.hpoly ? 2 : 0 ) | ( args.ambig ? 4 : 0 ) ),
+                 args.split ? "split" : "truncate",
+                 args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
+                 args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
                );
 
-    fprintf( stderr,
-             "    min q-score:         %ld\n"
-             "    min fragment length: %ld\n"
-             "    run mode:            %d (%s/%s/%s)\n",
-             args.min_qscore,
-             args.min_length,
-             ( ( args.split ? 1 : 0 ) | ( args.hpoly ? 2 : 0 ) | ( args.ambig ? 4 : 0 ) ),
-             args.split ? "split" : "truncate",
-             args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
-             args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
-           );
+        if ( args.tag_length )
+            fprintf( stderr,
+                     "    5' tag:              %s\n"
+                     "    max tag mismatches:  %ld\n",
+                     args.tag,
+                     args.tag_mismatch
+                   );
 
-    if ( args.tag_length )
         fprintf( stderr,
-                 "    5' tag:              %s\n"
-                 "    max tag mismatches:  %ld\n",
-                 args.tag,
-                 args.tag_mismatch
+                 "\n"
+                 "run summary:\n"
+                 "    original reads:      %ld\n"
+                 "    contributing reads:  %ld\n"
+                 "    retained fragments:  %ld\n",
+                 read_lengths.size(),
+                 ncontrib,
+                 fragment_lengths.size()
                );
-
-    fprintf( stderr,
-             "\n"
-             "run summary:\n"
-             "    original reads:      %ld\n"
-             "    contributing reads:  %ld\n"
-             "    retained fragments:  %ld\n",
-             read_lengths.size(),
-             ncontrib,
-             fragment_lengths.size()
-           );
-    // print original read length and retained fragment length statistics
+        // print original read length and retained fragment length statistics
+    }
+    
     std::sort( read_lengths.begin(), read_lengths.end() );
     std::sort( fragment_lengths.begin(), fragment_lengths.end() );
-    fprint_vector_stats( stderr, read_lengths, "\noriginal read length distribution:" );
-    fprint_vector_stats( stderr, fragment_lengths, "\nretained fragment length distribution:" );
 
+    fprint_vector_stats( stderr, read_lengths, "original read length distribution:" , args.json);
+    fprint_vector_stats( stderr, fragment_lengths, "retained fragment length distribution:", args.json );
+
+    if (args.json) {
+        fprintf( stderr, "\n\t}\n}\n");
+    }
+   
     delete parser;
 
     return 0;
