@@ -23,6 +23,7 @@ namespace argparse
         "[-T PREFIX] "
         "[-t MISMATCH] "
         "[-f] "
+        "[-j] "
         "( -F FASTA QUAL | -Q FASTQ )\n";
 
     const char help_msg[] =
@@ -49,7 +50,8 @@ namespace argparse
         "                           and the PREFIX is stripped from each contributing read\n"
         "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
         "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n"
-        "  -f FORMAT                output in FASTA or FASTQ format (default=" TO_STR( DEFAULT_FORMAT ) ")\n";
+        "  -f FORMAT                output in FASTA or FASTQ format (default=" TO_STR( DEFAULT_FORMAT ) ")\n"
+        "  -j                       output run diagnostics to stderr as JSON (default is to write ASCII text)\n";
 
     inline
     void help()
@@ -77,9 +79,10 @@ namespace argparse
         output( stdout ),
         min_length( DEFAULT_MIN_LENGTH ),
         min_qscore( DEFAULT_MIN_QSCORE ),
+        json (false),
         tag_length( 0 ),
         tag_mismatch( DEFAULT_TAG_MISMATCH ),
-        format( DEFAULT_FORMAT )
+        format( DEFAULT_FORMAT ) 
     {
         int i;
         // make sure tag is an empty string
@@ -125,6 +128,7 @@ namespace argparse
                 else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
                 else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
                 else if ( !strcmp( &arg[1], "f" ) ) parse_format( argv[++i] );
+                else if ( !strcmp( &arg[1], "j" ) ) parse_json ();
                 else
                     ERROR( "unknown argument: %s", arg );
             }
@@ -232,6 +236,11 @@ namespace argparse
     void args_t::parse_ambig()
     {
         ambig = true;
+    }
+
+    void args_t::parse_json()
+    {
+        json = true;
     }
 
     void args_t::parse_tag( const char * str )
