@@ -34,6 +34,7 @@ namespace argparse
         bool hpoly; // tolerate homopolymers
         bool ambig; // tolerate ambigs ('N')
         bool json; // diagnostics to JSON
+        char punch;
         char tag[256];
         size_t tag_length;
         size_t tag_mismatch;
@@ -51,7 +52,8 @@ namespace argparse
         void parse_split();
         void parse_hpoly();
         void parse_ambig();
-        void parse_json ();
+        void parse_punch( const char * );
+        void parse_json();
         void parse_tag( const char * );
         void parse_tagmismatch( const char * );
         void parse_format( const char * );

@@ -20,6 +20,7 @@ namespace argparse
         "[-q QSCORE] "
         "[-l LENGTH] "
         "[-m MODE] [-s] [-p] [-a] "
+        "[-P CHAR] "
         "[-T PREFIX] "
         "[-t MISMATCH] "
         "[-f] "
@@ -46,6 +47,7 @@ namespace argparse
         "  -s                       when encountering a low q-score, split instead of truncate\n"
         "  -p                       tolerate low q-score homopolymeric regions\n"
         "  -a                       tolerate low q-score ambiguous nucleotides\n"
+        "  -P CHAR                  rather than splitting or truncating, replace low quality bases with CHAR\n"
         "  -T PREFIX                if supplied, only reads with this PREFIX are retained,\n"
         "                           and the PREFIX is stripped from each contributing read\n"
         "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
@@ -79,10 +81,11 @@ namespace argparse
         output( stdout ),
         min_length( DEFAULT_MIN_LENGTH ),
         min_qscore( DEFAULT_MIN_QSCORE ),
-        json (false),
+        json( false ),
+        punch( '\0' ),
         tag_length( 0 ),
         tag_mismatch( DEFAULT_TAG_MISMATCH ),
-        format( DEFAULT_FORMAT ) 
+        format( DEFAULT_FORMAT )
     {
         int i;
         // make sure tag is an empty string
@@ -125,10 +128,11 @@ namespace argparse
                 else if ( !strcmp( &arg[1], "s" ) ) parse_split();
                 else if ( !strcmp( &arg[1], "p" ) ) parse_hpoly();
                 else if ( !strcmp( &arg[1], "a" ) ) parse_ambig();
+                else if ( !strcmp( &arg[1], "j" ) ) parse_json();
+                else if ( !strcmp( &arg[1], "P" ) ) parse_punch( argv[++i] );
                 else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
                 else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
                 else if ( !strcmp( &arg[1], "f" ) ) parse_format( argv[++i] );
-                else if ( !strcmp( &arg[1], "j" ) ) parse_json ();
                 else
                     ERROR( "unknown argument: %s", arg );
             }
@@ -138,6 +142,9 @@ namespace argparse
 
         if ( !fastq && ( !fasta || !qual ) )
             ERROR( "missing required argument -F FASTA QUAL or -Q FASTQ" );
+
+        if ( punch && ( split || hpoly || ambig ) )
+            ERROR( "-P CHAR is incompatible with any of -s, -p, and -a" );
     }
 
     args_t::~args_t() {
@@ -243,9 +250,19 @@ namespace argparse
         json = true;
     }
 
+    void args_t::parse_punch( const char * str )
+    {
+        const size_t len = strlen( str );
+
+        if ( len != 1 )
+            ERROR( "punch character must have a length of 1, had %s", str );
+
+        punch = str[0];
+    }
+
     void args_t::parse_tag( const char * str )
     {
-        int nvar = sscanf( str, "%256s", tag );
+        const int nvar = sscanf( str, "%256s", tag );
 
         if ( nvar != 1 )
             ERROR( "failed to process tag argument %s", str );
@@ -259,7 +276,7 @@ namespace argparse
 
         if ( val < 0 )
             ERROR( "maximum tag mismatch expected non-negative integer, had: %s", str );
-    
+
         tag_mismatch = size_t( val );
     }
 

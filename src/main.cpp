@@ -14,6 +14,8 @@ static const char * const valid_chars = "ACGTNacgtn";
 static long char_lookup[256];
 #endif
 
+const size_t BUF_LEN = 60;
+
 // vec must be sorted
 void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * hdr, bool do_json )
 {
@@ -45,7 +47,7 @@ void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * h
     }
 
     if (do_json) {
-        fprintf (file, ",\n\t\"%s\": {"
+        fprintf( file, ",\n\t\"%s\": {"
                  "\n\t\t\"mean\":                %g,"
                  "\n\t\t\"median\":              %g,"
                  "\n\t\t\"variance\":            %g,"
@@ -151,10 +153,61 @@ int main( int argc, const char * argv[] )
                 continue;
         }
 
+        if ( args.punch ) {
+            char buf[BUF_LEN + 1];
+            size_t i;
+
+            buf[BUF_LEN] = '\0';
+
+            // print the read ID
+            fprintf(
+                args.output,
+                "%c%s\n",
+                ( args.format == argparse::FASTQ ) ? '@' : '>',
+                seq.id.c_str()
+                );
+
+            for ( i = 0; to < seq.length; ++i, ++to ) {
+                if ( i == BUF_LEN ) {
+                    i = 0;
+                    fprintf(
+                        args.output,
+                        ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                        buf
+                        );
+                }
+                if ( seq.quals[to] < args.min_qscore )
+                    buf[i] = args.punch;
+                else
+                    buf[i] = seq.seq[to];
+            }
+
+            // print the remaining portion of the sequence
+            buf[i] = '\0';
+            fprintf(
+                args.output,
+                ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                buf
+                );
+
+            // to is now seq.length
+            if ( args.format == argparse::FASTQ ) {
+                fprintf( args.output, "\n+\n" );
+                for ( i = 0; i < to; i += BUF_LEN ) {
+                    char buf[BUF_LEN + 1];
+                    const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
+                    for ( int j = 0; j < nitem; ++j )
+                        buf[j] = ( char ) ( seq.quals[i + j] + 33 );
+                    buf[nitem] = '\0';
+                    fprintf( args.output, "%s", buf );
+                }
+                fprintf( args.output, "\n" );
+            }
+        }
         // if we're splitting,
         // continue the following process until we reach the end of the sequence,
         // but only continue if there's enough left to produce a minimum-sized fragment
-        while ( true ) {
+        else while ( true ) {
             size_t from = 0,
                    i = 0,
                    nambigs = 0;
@@ -220,8 +273,6 @@ int main( int argc, const char * argv[] )
                 ncontrib += 1;
             }
 
-            const size_t BUF_LEN = 60;
-
             // print the read sequence
             for ( i = from; i < to; i += BUF_LEN ) {
                 char buf[BUF_LEN + 1];
@@ -272,54 +323,52 @@ int main( int argc, const char * argv[] )
         }
     }
 
-    if (args.json) {
+    if ( args.json ) {
         fprintf( stderr, "{\"Settings\":{\n\t" );
         if ( args.fasta )
             fprintf( stderr,
-                     "\"fasta\": \"%s\",\n\t"
-                     "\"qual\":  \"%s\",\n\t",
-                     args.fasta->path,
-                     args.qual->path
-                   );
+                "\"fasta\": \"%s\",\n\t"
+                "\"qual\":  \"%s\",\n\t",
+                args.fasta->path,
+                args.qual->path
+                );
         else
             fprintf( stderr,
-                     "\"fastq\": \"%s\",\n\t",
-                     args.fastq->path
-                   );
-                   
-         fprintf( stderr,
-                 "\"min q-score\": %ld,\n\t"
-                 "\"min fragment length\": %ld,\n\t"
-                 "\"on low scores\": \"%s\",\n\t"
-                 "\"on homopolymers\": \"%s\",\n\t"
-                 "\"on ambiguities\": \"%s\"",   
-                 args.min_qscore,
-                 args.min_length,
-                  args.split ? "split" : "truncate",
-                 args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
-                 args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
-               );
-               
+                "\"fastq\": \"%s\",\n\t",
+                args.fastq->path
+                );
+
+        fprintf( stderr,
+            "\"min q-score\": %ld,\n\t"
+            "\"min fragment length\": %ld,\n\t"
+            "\"on low scores\": \"%s\",\n\t"
+            "\"on homopolymers\": \"%s\",\n\t"
+            "\"on ambiguities\": \"%s\"",
+            args.min_qscore,
+            args.min_length,
+            args.split ? "split" : "truncate",
+            args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
+            args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
+            );
+
         if ( args.tag_length )
             fprintf( stderr,
-                     ",\n\t\"tag\": \"%s\","
-                     ",\n\t\"max tag mismatches\":  %ld",
-                     args.tag,
-                     args.tag_mismatch
-                   );               
-       
-       fprintf ( stderr, 
-                "},\n"
-                "\"run summary\":{"
-                 "\n\t\"original reads\":      %ld,"
-                 "\n\t\"contributing reads\":  %ld,"
-                 "\n\t\"retained fragments\":  %ld",
-                 read_lengths.size(),
-                 ncontrib,
-                 fragment_lengths.size()
+                ",\n\t\"tag\": \"%s\","
+                ",\n\t\"max tag mismatches\":  %ld",
+                args.tag,
+                args.tag_mismatch
                 );
-                 
-        
+
+       fprintf( stderr,
+            "},\n"
+            "\"run summary\":{"
+            "\n\t\"original reads\":      %ld,"
+            "\n\t\"contributing reads\":  %ld,"
+            "\n\t\"retained fragments\":  %ld",
+            read_lengths.size(),
+            ncontrib,
+            fragment_lengths.size()
+            );
     } else {
         fprintf( stderr, "run settings:\n" );
 
@@ -368,17 +417,16 @@ int main( int argc, const char * argv[] )
                );
         // print original read length and retained fragment length statistics
     }
-    
+
     std::sort( read_lengths.begin(), read_lengths.end() );
     std::sort( fragment_lengths.begin(), fragment_lengths.end() );
 
     fprint_vector_stats( stderr, read_lengths, "original read length distribution:" , args.json);
     fprint_vector_stats( stderr, fragment_lengths, "retained fragment length distribution:", args.json );
 
-    if (args.json) {
+    if ( args.json )
         fprintf( stderr, "\n\t}\n}\n");
-    }
-   
+
     delete parser;
 
     return 0;
