@@ -24,6 +24,7 @@ namespace argparse
         "[-T PREFIX] "
         "[-t MISMATCH] "
         "[-f] "
+        "[-j] "
         "( -F FASTA QUAL | -Q FASTQ )\n";
 
     const char help_msg[] =
@@ -51,7 +52,8 @@ namespace argparse
         "                           and the PREFIX is stripped from each contributing read\n"
         "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
         "                           MISMATCH mismatches (default=" TO_STR( DEFAULT_TAG_MISMATCH ) ")\n"
-        "  -f FORMAT                output in FASTA or FASTQ format (default=" TO_STR( DEFAULT_FORMAT ) ")\n";
+        "  -f FORMAT                output in FASTA or FASTQ format (default=" TO_STR( DEFAULT_FORMAT ) ")\n"
+        "  -j                       output run diagnostics to stderr as JSON (default is to write ASCII text)\n";
 
     inline
     void help()
@@ -79,6 +81,7 @@ namespace argparse
         output( stdout ),
         min_length( DEFAULT_MIN_LENGTH ),
         min_qscore( DEFAULT_MIN_QSCORE ),
+        json( false ),
         punch( '\0' ),
         tag_length( 0 ),
         tag_mismatch( DEFAULT_TAG_MISMATCH ),
@@ -125,6 +128,7 @@ namespace argparse
                 else if ( !strcmp( &arg[1], "s" ) ) parse_split();
                 else if ( !strcmp( &arg[1], "p" ) ) parse_hpoly();
                 else if ( !strcmp( &arg[1], "a" ) ) parse_ambig();
+                else if ( !strcmp( &arg[1], "j" ) ) parse_json();
                 else if ( !strcmp( &arg[1], "P" ) ) parse_punch( argv[++i] );
                 else if ( !strcmp( &arg[1], "T" ) ) parse_tag( argv[++i] );
                 else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( argv[++i] );
@@ -241,6 +245,11 @@ namespace argparse
         ambig = true;
     }
 
+    void args_t::parse_json()
+    {
+        json = true;
+    }
+
     void args_t::parse_punch( const char * str )
     {
         const size_t len = strlen( str );
@@ -267,7 +276,7 @@ namespace argparse
 
         if ( val < 0 )
             ERROR( "maximum tag mismatch expected non-negative integer, had: %s", str );
-    
+
         tag_mismatch = size_t( val );
     }
 
