@@ -14,6 +14,8 @@ static const char * const valid_chars = "ACGTNacgtn";
 static long char_lookup[256];
 #endif
 
+const size_t BUF_LEN = 60;
+
 // vec must be sorted
 void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * hdr )
 {
@@ -128,10 +130,61 @@ int main( int argc, const char * argv[] )
                 continue;
         }
 
+        if ( args.punch ) {
+            char buf[BUF_LEN + 1];
+            int i;
+
+            buf[BUF_LEN] = '\0';
+
+            // print the read ID
+            fprintf(
+                args.output,
+                "%c%s\n",
+                ( args.format == argparse::FASTQ ) ? '@' : '>',
+                seq.id.c_str()
+                );
+
+            for ( i = 0; to < seq.length; ++i, ++to ) {
+                if ( i == BUF_LEN ) {
+                    i = 0;
+                    fprintf(
+                        args.output,
+                        ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                        buf
+                        );
+                }
+                if ( seq.quals[to] < args.min_qscore )
+                    buf[i] = args.punch;
+                else
+                    buf[i] = seq.seq[to];
+            }
+
+            // print the remaining portion of the sequence
+            buf[i] = '\0';
+            fprintf(
+                args.output,
+                ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                buf
+                );
+
+            // to is now seq.length
+            if ( args.format == argparse::FASTQ ) {
+                fprintf( args.output, "\n+\n" );
+                for ( i = 0; i < to; i += BUF_LEN ) {
+                    char buf[BUF_LEN + 1];
+                    const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
+                    for ( int j = 0; j < nitem; ++j )
+                        buf[j] = ( char ) ( seq.quals[i + j] + 33 );
+                    buf[nitem] = '\0';
+                    fprintf( args.output, "%s", buf );
+                }
+                fprintf( args.output, "\n" );
+            }
+        }
         // if we're splitting,
         // continue the following process until we reach the end of the sequence,
         // but only continue if there's enough left to produce a minimum-sized fragment
-        while ( true ) {
+        else while ( true ) {
             size_t from = 0,
                    i = 0,
                    nambigs = 0;
@@ -196,8 +249,6 @@ int main( int argc, const char * argv[] )
                 // count the contributing read
                 ncontrib += 1;
             }
-
-            const size_t BUF_LEN = 60;
 
             // print the read sequence
             for ( i = from; i < to; i += BUF_LEN ) {
