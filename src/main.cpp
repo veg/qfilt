@@ -125,6 +125,9 @@ int main( int argc, const char * argv[] )
     for ( ; parser->next( seq ); seq.clear() ) {
         // maxto is the maximum value of "to",
         // NOT THE UPPER BOUND
+        
+        if (seq.length == 0) continue;
+        
         const size_t maxto = seq.length - args.min_length;
         size_t nfragment = 0,
                to = 0;

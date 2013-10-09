@@ -164,12 +164,15 @@ namespace seq
             goto begin;
         }
 
-        if ( ( qual || fastq ) && seq.seq.length() != seq.quals.size() )
-            file->error(
-                "malformed file: sequence length (%ld) does not match the number of quality scores (%ld)",
+        if ( ( qual || fastq ) && seq.seq.length() != seq.quals.size() ) {
+            file->warning(
+                "skipping malformed read: sequence length (%ld) does not match the number of quality scores (%ld)",
                 seq.seq.length(),
                 seq.quals.size()
             );
+            seq.clear();
+            return true;
+        }
         else
             seq.length = seq.seq.length();
 

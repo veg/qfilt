@@ -56,6 +56,7 @@ namespace ifile
         ~ifile_t();
         bool good() const;
         void error( const char *, ... ) const;
+        void warning ( const char *, ... ) const;
         char getc();
         void skip_ws();
         void extend_until( std::string &, const char *, bool trim=true );

@@ -48,6 +48,16 @@ namespace ifile
         exit( 1 );
     }
 
+    void ifile_t::warning ( const char * msg, ... ) const
+    {
+        va_list args;
+        fprintf( stderr, "\nWARNING (file: %s, line: %ld, column: %ld): ", path, line, col );
+        va_start( args, msg );
+        vfprintf( stderr, msg, args );
+        va_end( args );
+        fprintf( stderr, "\n" );
+    }
+    
     bool ifile_t::fill()
     {
         ptr = fgets( buf, BUF_SZ, file );
