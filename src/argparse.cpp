@@ -114,7 +114,10 @@ namespace argparse
             else if ( arg[0] == '-' ) {
                 if ( !strcmp( &arg[1], "h" ) ) help();
                 else if ( !strcmp( &arg[1], "F" ) ) {
-                    parse_fasta( next_arg (i, argc, argv), next_arg (i, argc, argv) );
+                    const char * f = next_arg (i, argc, argv),
+                               * q = next_arg (i, argc, argv);
+                               
+                    parse_fasta( f, q );
                 }
                 else if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "o" ) ) parse_output( next_arg (i, argc, argv) );
