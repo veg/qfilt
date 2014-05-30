@@ -49,7 +49,6 @@ namespace argparse
         "  -p                       tolerate low q-score homopolymeric regions\n"
         "  -a                       tolerate low q-score ambiguous nucleotides\n"
         "  -P CHAR                  rather than splitting or truncating, replace low quality bases with CHAR\n"
-        "                           set CHAR to X to remove low quality bases\n"
         "                           this option OVERRIDES all -m mode options\n"
         "  -R COUNT                 rather than splitting or truncating, remove reads which \n"
         "                           contain more than COUNT low quality bases\n"
