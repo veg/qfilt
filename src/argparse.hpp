@@ -3,7 +3,7 @@
 #define ARGPARSE_H
 
 #include "ifile.hpp"
-
+#include "limits.h"
 // program name
 #define PROGNAME "qfilt"
 
