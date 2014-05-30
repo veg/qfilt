@@ -23,6 +23,7 @@ namespace argparse
         "[-P CHAR] "
         "[-T PREFIX] "
         "[-t MISMATCH] "
+        "[-R COUNT] "
         "[-f] "
         "[-j] "
         "( -F FASTA QUAL | -Q FASTQ )\n";
@@ -48,6 +49,11 @@ namespace argparse
         "  -p                       tolerate low q-score homopolymeric regions\n"
         "  -a                       tolerate low q-score ambiguous nucleotides\n"
         "  -P CHAR                  rather than splitting or truncating, replace low quality bases with CHAR\n"
+        "                           set CHAR to X to remove low quality bases\n"
+        "                           this option OVERRIDES all -m mode options\n"
+        "  -R COUNT                 rather than splitting or truncating, remove reads which \n"
+        "                           contain more than COUNT low quality bases\n"
+        "                           this option only works in COMBINATION with the -P (punch) option\n"
         "  -T PREFIX                if supplied, only reads with this PREFIX are retained,\n"
         "                           and the PREFIX is stripped from each contributing read\n"
         "  -t MISMATCH              if PREFIX is supplied, prefix matching tolerates at most\n"
@@ -94,7 +100,8 @@ namespace argparse
         punch( '\0' ),
         tag_length( 0 ),
         tag_mismatch( DEFAULT_TAG_MISMATCH ),
-        format( DEFAULT_FORMAT )
+        format( DEFAULT_FORMAT ),
+        remove_count (DEFAULT_REMOVE_COUNT)
     {
         int i;
         // make sure tag is an empty string
@@ -129,6 +136,7 @@ namespace argparse
                 else if ( !strcmp( &arg[1], "a" ) ) parse_ambig();
                 else if ( !strcmp( &arg[1], "j" ) ) parse_json();
                 else if ( !strcmp( &arg[1], "P" ) ) parse_punch( next_arg (i, argc, argv) );
+                else if ( !strcmp( &arg[1], "R" ) ) parse_remove_count( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "T" ) ) parse_tag( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "t" ) ) parse_tagmismatch( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "f" ) ) parse_format( next_arg (i, argc, argv) );
@@ -257,6 +265,16 @@ namespace argparse
             ERROR( "punch character must have a length of 1, had %s", str );
 
         punch = str[0];
+    }
+
+    void args_t::parse_remove_count( const char * str )
+    {
+        const long len = atol( str );
+
+        if ( len < 0L )
+            ERROR( "remove count must character must be non-negative, had %s", str );
+
+        remove_count = len;
     }
 
     void args_t::parse_tag( const char * str )

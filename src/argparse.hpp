@@ -13,6 +13,7 @@
 #define DEFAULT_MODE 0
 #define DEFAULT_TAG_MISMATCH 0
 #define DEFAULT_FORMAT FASTA
+#define DEFAULT_REMOVE_COUNT (ULONG_MAX)
 
 namespace argparse
 {
@@ -39,6 +40,7 @@ namespace argparse
         size_t tag_length;
         size_t tag_mismatch;
         format_t format;
+        unsigned long   remove_count;
 
         args_t( int, const char ** );
         ~args_t();
@@ -57,6 +59,7 @@ namespace argparse
         void parse_tag( const char * );
         void parse_tagmismatch( const char * );
         void parse_format( const char * );
+        void parse_remove_count ( const char * );
     };
 }
 

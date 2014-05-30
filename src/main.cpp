@@ -23,10 +23,12 @@ void fprint_vector_stats( FILE * file, std::vector<size_t> & vec, const char * h
            var = 0.,
            mean = 0.,
            median = 0.;
+           
     long min = 0,
          two5 = 0,
          ninetyseven5 = 0,
          max = 0;
+         
     size_t i;
 
     for ( i = 0; i < vec.size(); ++i ) {
@@ -157,54 +159,67 @@ int main( int argc, const char * argv[] )
         }
 
         if ( args.punch ) {
-            char buf[BUF_LEN + 1];
             size_t i;
+            unsigned long nambigs = 0UL;
 
-            buf[BUF_LEN] = '\0';
+            //char buf[BUF_LEN + 1];
+            //buf[BUF_LEN] = '\0';
 
             // print the read ID
-            fprintf(
-                args.output,
-                "%c%s\n",
-                ( args.format == argparse::FASTQ ) ? '@' : '>',
-                seq.id.c_str()
-                );
+            
+            if (seq.length >= args.min_length) {
 
-            for ( i = 0; to < seq.length; ++i, ++to ) {
-                if ( i == BUF_LEN ) {
-                    i = 0;
-                    fprintf(
-                        args.output,
-                        ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
-                        buf
-                        );
+              char * buffer = new char[seq.length+1];
+
+            
+              for ( i = 0; to < seq.length; ++i, ++to ) {
+                  if ( seq.quals[to] < args.min_qscore ) {
+                      buffer[i] = args.punch;
+                      nambigs ++;
+                      if (nambigs >= args.remove_count) {
+                        break;
+                      }
+                  }
+                  else
+                      buffer[i] = seq.seq[to];
+              }
+              
+              if (to == seq.length) {
+                buffer[to] = '\0';
+                
+              // print the remaining portion of the sequence
+                ncontrib ++;
+                
+                fragment_lengths.push_back( seq.length );
+              
+                fprintf(
+                  args.output,
+                  "%c%s\n",
+                  ( args.format == argparse::FASTQ ) ? '@' : '>',
+                  seq.id.c_str()
+                  );
+
+                 fprintf(
+                    args.output,
+                    ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
+                    buffer
+                    );
+                 
+                 
+                if ( args.format == argparse::FASTQ ) {
+                    fprintf( args.output, "\n+\n" );
+                    for ( i = 0; i < to; i += BUF_LEN ) {
+                        char buf[BUF_LEN + 1];
+                        const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
+                        for ( int j = 0; j < nitem; ++j )
+                            buf[j] = ( char ) ( seq.quals[i + j] + 33 );
+                        buf[nitem] = '\0';
+                        fprintf( args.output, "%s", buf );
+                    }
+                    fprintf( args.output, "\n" );
                 }
-                if ( seq.quals[to] < args.min_qscore )
-                    buf[i] = args.punch;
-                else
-                    buf[i] = seq.seq[to];
-            }
-
-            // print the remaining portion of the sequence
-            buf[i] = '\0';
-            fprintf(
-                args.output,
-                ( args.format == argparse::FASTQ ) ? "%s" : "%s\n",
-                buf
-                );
-
-            // to is now seq.length
-            if ( args.format == argparse::FASTQ ) {
-                fprintf( args.output, "\n+\n" );
-                for ( i = 0; i < to; i += BUF_LEN ) {
-                    char buf[BUF_LEN + 1];
-                    const int nitem = ( to - i < BUF_LEN ) ? to - i : BUF_LEN;
-                    for ( int j = 0; j < nitem; ++j )
-                        buf[j] = ( char ) ( seq.quals[i + j] + 33 );
-                    buf[nitem] = '\0';
-                    fprintf( args.output, "%s", buf );
-                }
-                fprintf( args.output, "\n" );
+              }
+              delete [] buffer; 
             }
         }
         // if we're splitting,
@@ -390,15 +405,29 @@ int main( int argc, const char * argv[] )
 
         fprintf( stderr,
                  "    min q-score:         %ld\n"
-                 "    min fragment length: %ld\n"
+                 "    min fragment length: %ld\n" ,
+                  args.min_qscore,
+                  args.min_length
+                );
+                 
+        if ( args.punch ) {
+           fprintf( stderr,
+                 "    punch low scores with:    %c \n"
+                 "    skip sequence if more than:  %ld \n",
+                  args.punch,
+                  args.remove_count
+                 );
+         
+        } else {
+        
+          fprintf( stderr,
                  "    run mode:            %d (%s/%s/%s)\n",
-                 args.min_qscore,
-                 args.min_length,
                  ( ( args.split ? 1 : 0 ) | ( args.hpoly ? 2 : 0 ) | ( args.ambig ? 4 : 0 ) ),
                  args.split ? "split" : "truncate",
                  args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
                  args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
                );
+        }
 
         if ( args.tag_length )
             fprintf( stderr,
