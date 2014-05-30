@@ -358,16 +358,30 @@ int main( int argc, const char * argv[] )
 
         fprintf( stderr,
             "\"min q-score\": %ld,\n\t"
-            "\"min fragment length\": %ld,\n\t"
-            "\"on low scores\": \"%s\",\n\t"
-            "\"on homopolymers\": \"%s\",\n\t"
-            "\"on ambiguities\": \"%s\"",
+            "\"min fragment length\": %ld,\n\t",
             args.min_qscore,
-            args.min_length,
-            args.split ? "split" : "truncate",
-            args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
-            args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
-            );
+            args.min_length
+        );
+            
+        if (args.punch) {
+           fprintf( stderr,
+                 "\"punch low scores with\":    \"%c\", \n\t"
+                 "\"skip sequence if more than\":  %ld \n\t",
+                  args.punch,
+                  args.remove_count
+                 );
+        
+        } else {
+          fprintf( stderr,
+              "\"on low scores\": \"%s\",\n\t"
+              "\"on homopolymers\": \"%s\",\n\t"
+              "\"on ambiguities\": \"%s\"",
+              args.split ? "split" : "truncate",
+              args.hpoly ? "tolerate homopolymers" : "don't tolerate homopolymers",
+              args.ambig ? "tolerate ambigs" : "don't tolerate ambigs"
+              );
+
+        }
 
         if ( args.tag_length )
             fprintf( stderr,
