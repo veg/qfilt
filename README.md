@@ -20,46 +20,51 @@ USAGE
 
 To try it using the example data provided:
 
-    qfilt -Q data/test.fna data/test.qual -q 15 -l 30 -T ATATCGCGAGGA
+    qfilt -F data/test.fna data/test.qual -q 15 -l 30 -T ATATCGCGAGGA
 
 ### OUTPUT: ####
 
 #### stderr: ####
 
-    run settings:
-        input fasta:         data/test.fna
-        input qual:          data/test.qual
-        min q-score:         15
-        min fragment length: 30
-        run mode:            0 (truncate/don't retain homopolymers/don't skip ambigs)
-        5' tag:              ATATCGCGAGGA
-        max tag mismatches:  0
-    
-    run summary:
-        original reads:      305
-        contributing reads:  5
-        retained fragments:  5
-    
-    original read length distribution:
-        mean:                96.9508
-        median:              77
-        variance             3743.03
-        standard deviation:  61.1803
-        min:                 49
-        2.5%:                54
-        97.5%:               332
-        max:                 497
-    
-    retained fragment length distribution:
-        mean:                41
-        median:              37
-        variance             72.5
-        standard deviation:  8.51469
-        min:                 33
-        2.5%:                33
-        97.5%:               54
-        max:                 54
- 
+	run settings:
+		input fasta:         data/test.fna
+		input qual:          data/test.qual
+		min q-score:         15
+		min fragment length: 30
+		run mode:            0 (truncate/don't tolerate homopolymers/don't tolerate ambigs)
+		5' tag:              ATATCGCGAGGA
+		max tag mismatches:  0
+
+	run summary:
+		total bases       :  29570
+		original reads    :  305
+		q10               :  0.995502
+		q20               :  0.860298
+		q30               :  0.728745
+		mean q-score      :  33.2273
+		contributing reads:  5
+		retained fragments:  5
+
+	original read length distribution:
+		mean:                96.9508
+		median:              77
+		variance             3743.03
+		standard deviation:  61.1803
+		min:                 49
+		2.5%:                54
+		97.5%:               332
+		max:                 497
+
+	retained fragment length distribution:
+		mean:                41
+		median:              37
+		variance             72.5
+		standard deviation:  8.51469
+		min:                 33
+		2.5%:                33
+		97.5%:               54
+		max:                 54
+
 #### stdout: ####
 
     >GM98SRO01B77KU rank=0000671 x=796.0 y=1996.0 length=58

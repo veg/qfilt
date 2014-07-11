@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <stdlib.h>
 
 #include "argparse.hpp"
 #include "seq.hpp"
@@ -99,8 +100,15 @@ int main( int argc, const char * argv[] )
     argparse::args_t args = argparse::args_t( argc, argv );
     seq::parser_t * parser = NULL;
     seq::seq_t seq = seq::seq_t();
-    long ncontrib = 0;
-
+    long ncontrib = 0L;
+    
+    long      total_bases = 0L,
+              q_over10    = 0L,
+              q_over20    = 0L,
+              q_over30    = 0L;
+    
+    double    q_score_sum = 0.0;
+    
     // initialize the parser
     if ( args.fastq )
         parser = new seq::parser_t( args.fastq );
@@ -135,6 +143,21 @@ int main( int argc, const char * argv[] )
                to = 0;
 
         read_lengths.push_back( seq.length );
+        total_bases += seq.length;
+        
+        for (size_t i = 0; i < seq.length; ++i ) {
+            q_score_sum += seq.quals[i];
+            if (seq.quals[i] >= 10L) {
+                q_over10 ++;
+                if (seq.quals[i] >= 20L) {
+                    q_over20++;
+                    if (seq.quals[i] >= 30L) {
+                        q_over30++;
+                    }
+                }
+            }
+        }
+        
 
         if ( seq.length < args.min_length )
             continue;
@@ -157,6 +180,10 @@ int main( int argc, const char * argv[] )
             if ( mismatch > args.tag_mismatch )
                 continue;
         }
+        
+        // gather read stats
+        
+        
 
         if ( args.punch ) {
             size_t i;
@@ -394,10 +421,20 @@ int main( int argc, const char * argv[] )
        fprintf( stderr,
             "},\n"
             "\"run summary\":{"
+            "\n\t\"total bases\":      %ld,"
             "\n\t\"original reads\":      %ld,"
+            "\n\t\"q10\":      %g,"
+            "\n\t\"q20\":      %g,"
+            "\n\t\"q30\":      %g,"
+            "\n\t\"mean q-score\":      %g,"
             "\n\t\"contributing reads\":  %ld,"
             "\n\t\"retained fragments\":  %ld",
+            total_bases,
             read_lengths.size(),
+            q_over10 / (double) total_bases,
+            q_over20 / (double) total_bases,
+            q_over30 / (double) total_bases,
+            q_score_sum / (double) total_bases,
             ncontrib,
             fragment_lengths.size()
             );
@@ -454,10 +491,20 @@ int main( int argc, const char * argv[] )
         fprintf( stderr,
                  "\n"
                  "run summary:\n"
-                 "    original reads:      %ld\n"
+                 "    total bases       :  %ld\n"
+                 "    original reads    :  %ld\n"
+                 "    q10               :  %g\n"
+                 "    q20               :  %g\n"
+                 "    q30               :  %g\n"
+                 "    mean q-score      :  %g\n"
                  "    contributing reads:  %ld\n"
                  "    retained fragments:  %ld\n",
+                 total_bases,
                  read_lengths.size(),
+                 q_over10 / (double) total_bases,
+                 q_over20 / (double) total_bases,
+                 q_over30 / (double) total_bases,
+                 q_score_sum / (double) total_bases,
                  ncontrib,
                  fragment_lengths.size()
                );
