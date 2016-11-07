@@ -16,6 +16,7 @@ namespace argparse
 {
     const char usage[] =
         "usage: " PROGNAME " [-h] "
+        "[-v] "
         "[-o OUTPUT] "
         "[-q QSCORE] "
         "[-l LENGTH] "
@@ -37,6 +38,7 @@ namespace argparse
         "\n"
         "optional arguments:\n"
         "  -h, --help               show this help message and exit\n"
+        "  -v, --version            show current version and exit\n"
         "  -o OUTPUT                direct retained fragments to a file named OUTPUT (default=stdout)\n"
         "  -q QSCORE                minimum per-base quality score below which a read will be split\n"
         "                           or truncated (default=" TO_STR( DEFAULT_MIN_QSCORE ) ")\n"
@@ -65,6 +67,13 @@ namespace argparse
     {
         fprintf( stderr, "%s\n%s", usage, help_msg );
         exit( 1 );
+    }
+
+    inline
+    void version()
+    {
+      fprintf( stderr, "%s\n", VERSION_NUMBER);
+      exit( 0 );
     }
 
     inline
@@ -114,6 +123,7 @@ namespace argparse
 
             if ( arg[0] == '-' && arg[1] == '-' ) {
                 if ( !strcmp( &arg[2], "help" ) ) help();
+                else if ( !strcmp( &arg[2], "version" ) ) version();
                 else
                     ERROR( "unknown argument: %s", arg );
             }
@@ -125,6 +135,7 @@ namespace argparse
                                
                     parse_fasta( f, q );
                 }
+                else if ( !strcmp( &arg[1], "v" ) ) version();
                 else if ( !strcmp( &arg[1], "Q" ) ) parse_fastq( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "o" ) ) parse_output( next_arg (i, argc, argv) );
                 else if ( !strcmp( &arg[1], "l" ) ) parse_minlength( next_arg (i, argc, argv) );

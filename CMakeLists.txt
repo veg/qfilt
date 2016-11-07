@@ -8,6 +8,10 @@ set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE INTERNAL "Installation prefix" 
 
 set(CMAKE_CONFIGURATION_TYPES Release)
 
+# SET VERSION FROM FILE
+file (STRINGS "VERSION.txt" VERSION_NUMBER)
+add_definitions (-DVERSION_NUMBER=\"${VERSION_NUMBER}\")
+
 include_directories(
     src/
 )
