@@ -16,7 +16,7 @@ The build process requires [CMake](http://www.cmake.org/). To build, type:
 USAGE
 -----
 
-    qfilt [-h] [-o OUTPUT] [-q QSCORE] [-l LENGTH] [-m MODE] [-T PREFIX] [-t MISMATCH] (-F FASTQ | -Q FASTA QUAL)
+    qfilt [-h] [-v] [-o OUTPUT] [-q QSCORE] [-l LENGTH] [-m MODE] [-T PREFIX] [-t MISMATCH] (-F FASTQ | -Q FASTA QUAL)
 
 To try it using the example data provided:
 
@@ -83,6 +83,7 @@ ARGUMENTS
 
     optional arguments:
     -h, --help               show this help message and exit
+    -v, --version            show version and exit
     -o OUTPUT                direct retained fragments to a file named OUTPUT (default=stdout)
     -q QSCORE                minimum per-base quality score below which a read will be split
                              or truncated (default=20)
