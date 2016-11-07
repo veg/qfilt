@@ -15,6 +15,11 @@
 #define DEFAULT_FORMAT FASTA
 #define DEFAULT_REMOVE_COUNT (ULONG_MAX)
 
+#ifndef VERSION_NUMBER
+#define VERSION_NUMBER            "UNKNOWN"
+#endif
+
+
 namespace argparse
 {
     enum format_t {
